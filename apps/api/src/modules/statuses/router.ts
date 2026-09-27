@@ -83,6 +83,7 @@ export function createStatusesRouter(store: JsonStore<DataSnapshot>): Router {
         code: 'status_in_use',
         message: `该分类下还有 ${out.conflictTaskIds.length} 个任务，请先移动`,
         taskIds: out.conflictTaskIds,
+        details: { taskIds: out.conflictTaskIds },
       });
       return;
     }

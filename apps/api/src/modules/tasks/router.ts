@@ -4,6 +4,7 @@ import {
   addStageInputSchema,
   createProgressInputSchema,
   createTaskInputSchema,
+  setCurrentStageInputSchema,
   updateStageInputSchema,
   updateTaskInputSchema,
 } from '@task-list/shared';
@@ -107,10 +108,7 @@ export function createTasksRouter(store: JsonStore<DataSnapshot>): Router {
   });
 
   router.patch('/:id/current-stage', async (req, res) => {
-    const { stageId } = req.body as { stageId?: unknown };
-    if (typeof stageId !== 'string' || stageId.length === 0) {
-      throw new HttpError(400, 'validation_error', 'stageId 必填且为非空字符串');
-    }
+    const { stageId } = setCurrentStageInputSchema.parse(req.body);
     const out = await run(store, (s) => service.setCurrentStage(s, req.params.id, stageId));
     res.json(out.task);
   });

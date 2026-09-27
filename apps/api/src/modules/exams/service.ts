@@ -176,17 +176,6 @@ export function parseCsv(content: string): string[][] {
   return rows;
 }
 
-export const EXAM_CSV_HEADERS = [
-  'title',
-  'type',
-  'company',
-  'deadline',
-  'url',
-  'location',
-  'status',
-  'notes',
-] as const;
-
 function trimOrNull(value: string | undefined): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
@@ -203,6 +192,9 @@ export function parseExamsFromCsv(content: string): {
   }
 
   const header = rows[0].map((h) => h.trim().toLowerCase());
+  if (!header.includes('title') || !header.includes('type')) {
+    throw new HttpError(400, 'validation_error', 'CSV 表头缺少必需列 title/type');
+  }
   const indexOf = (name: string) => header.indexOf(name);
 
   const exams: ExamInfo[] = [];

@@ -98,7 +98,11 @@ export function useAdvanceStage(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => http.post<AdvanceStageResult>(`/tasks/${id}/advance`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.details() }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: taskKeys.details() }),
+        queryClient.invalidateQueries({ queryKey: taskKeys.progress(id) }),
+      ]),
   });
 }
 

@@ -115,6 +115,14 @@ describe('任务', () => {
     expect(res.body.code).toBe('validation_error');
   });
 
+  it('POST /api/tasks 传不存在的 statusId → 400', async () => {
+    const res = await request(app)
+      .post('/api/tasks')
+      .send(validTaskPayload({ statusId: 'status-does-not-exist' }));
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('validation_error');
+  });
+
   it('GET /api/tasks 列表与 GET /api/tasks/:id 详情', async () => {
     const task = await createTaskViaApi();
     const list = await request(app).get('/api/tasks');
@@ -137,6 +145,18 @@ describe('任务', () => {
     const res = await request(app).patch(`/api/tasks/${task.id}`).send({ title: '改名' });
     expect(res.status).toBe(200);
     expect(res.body.title).toBe('改名');
+  });
+
+  it('PATCH 带 stages 不会重建阶段（阶段由独立端点管理，stage id 保持不变）', async () => {
+    const task = await createTaskViaApi();
+    const res = await request(app)
+      .patch(`/api/tasks/${task.id}`)
+      .send({ title: '改名', stages: [{ name: '不应生效' }] });
+    expect(res.status).toBe(200);
+    expect(res.body.title).toBe('改名');
+    expect(res.body.stages).toHaveLength(2);
+    expect(res.body.stages[0].id).toBe(task.stages[0].id);
+    expect(res.body.stages[1].id).toBe(task.stages[1].id);
   });
 
   it('DELETE /api/tasks/:id → 204 且级联删除 progressEntries', async () => {
@@ -222,6 +242,7 @@ describe('阶段流转 advance', () => {
     const first = await request(app).post(`/api/tasks/${task.id}/advance`);
     expect(first.status).toBe(200);
     expect(first.body.nextStage).not.toBeNull();
+    expect(first.body.nextStage.status).toBe('in_progress');
     expect(first.body.task.currentStageId).toBe(first.body.nextStage.id);
 
     const second = await request(app).post(`/api/tasks/${task.id}/advance`);

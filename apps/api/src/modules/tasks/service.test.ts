@@ -32,6 +32,18 @@ describe('createTask', () => {
     expect(task.stages).toHaveLength(0);
     expect(task.currentStageId).toBeNull();
   });
+
+  it('statusId 不存在时抛 400 校验错误', () => {
+    let caught: unknown;
+    try {
+      createTask(snapshot(), input({ statusId: 'status-does-not-exist' }));
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as { code?: string }).code).toBe('validation_error');
+    expect((caught as { status?: number }).status).toBe(400);
+  });
 });
 
 describe('advanceStage', () => {
@@ -44,6 +56,7 @@ describe('advanceStage', () => {
     const first = advanceStage(snap, id);
     snap = first.snapshot;
     expect(first.result.nextStage).not.toBeNull();
+    expect(first.result.nextStage?.status).toBe('in_progress');
     expect(first.result.task.stages[0].status).toBe('done');
     expect(first.result.task.stages[1].status).toBe('in_progress');
     expect(first.result.task.currentStageId).toBe(first.result.task.stages[1].id);

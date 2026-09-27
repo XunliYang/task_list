@@ -114,6 +114,13 @@ function withTask(snapshot: DataSnapshot, task: Task): DataSnapshot {
   };
 }
 
+/** 校验 statusId 是否指向已存在的状态分类，避免写入悬空外键。 */
+function assertStatusExists(snapshot: DataSnapshot, statusId: string): void {
+  if (!snapshot.statusCategories.some((c) => c.id === statusId)) {
+    throw new HttpError(400, 'validation_error', `状态分类不存在：${statusId}`);
+  }
+}
+
 export interface CreateTaskResult {
   snapshot: DataSnapshot;
   task: Task;
@@ -121,6 +128,7 @@ export interface CreateTaskResult {
 
 export function createTask(snapshot: DataSnapshot, input: CreateTaskInput): CreateTaskResult {
   const timestamp = now();
+  assertStatusExists(snapshot, input.statusId);
 
   const stages: Stage[] = input.stages.map((stage, index) => ({
     id: uuid(),
@@ -162,6 +170,10 @@ export function updateTask(
 ): UpdateTaskResult {
   const existing = getTask(snapshot, taskId);
 
+  if (input.statusId !== undefined && input.statusId !== existing.statusId) {
+    assertStatusExists(snapshot, input.statusId);
+  }
+
   const updated: Task = {
     ...existing,
     title: input.title ?? existing.title,
@@ -171,20 +183,6 @@ export function updateTask(
     notes: input.notes !== undefined ? input.notes : existing.notes,
     updatedAt: now(),
   };
-
-  // 若更新带了 stages（整组替换），重新派生 currentStageId 与阶段状态。
-  if (input.stages !== undefined) {
-    const stages: Stage[] = input.stages.map((stage, index) => ({
-      id: uuid(),
-      name: stage.name,
-      order: index,
-      status: index === 0 ? ('in_progress' as StageStatus) : ('pending' as StageStatus),
-      dueDate: stage.dueDate ?? null,
-      completedAt: null,
-    }));
-    updated.stages = stages;
-    updated.currentStageId = stages.length > 0 ? stages[0].id : null;
-  }
 
   return { snapshot: withTask(snapshot, updated), task: updated };
 }
@@ -249,6 +247,15 @@ function normalizeStages(stages: Stage[]): Stage[] {
   return stages.map((stage, index) => ({ ...stage, order: index }));
 }
 
+/** 「阶段前沿」不变式：第一个未完成阶段为当前阶段；全部完成指向末阶段；无阶段为 null。 */
+function computeCurrentStageId(stages: Stage[]): string | null {
+  if (stages.length === 0) {
+    return null;
+  }
+  const firstNotDone = stages.find((s) => s.status !== 'done');
+  return firstNotDone ? firstNotDone.id : stages[stages.length - 1].id;
+}
+
 export interface UpdateStageResult {
   snapshot: DataSnapshot;
   task: Task;
@@ -283,7 +290,13 @@ export function updateStage(
     };
   });
 
-  const updated: Task = { ...task, stages, updatedAt: now() };
+  // 重算「阶段前沿」：状态改动后 currentStageId 始终指向第一个未完成阶段（全部完成则末阶段）。
+  const updated: Task = {
+    ...task,
+    stages,
+    currentStageId: computeCurrentStageId(stages),
+    updatedAt: now(),
+  };
   return { snapshot: withTask(snapshot, updated), task: updated };
 }
 
@@ -404,12 +417,15 @@ export function advanceStage(snapshot: DataSnapshot, taskId: string): AdvanceSta
     stageId: current.id,
   };
 
+  // 返回映射后的副本，保证 nextStage.status 与 task.stages 内一致（in_progress）。
+  const nextUpdated = next ? updatedStages.find((s) => s.id === next.id) ?? null : null;
+
   return {
     snapshot: {
       ...withTask(snapshot, updated),
       progressEntries: [...snapshot.progressEntries, entry],
     },
-    result: { task: updated, nextStage: next !== undefined ? next : null },
+    result: { task: updated, nextStage: nextUpdated },
   };
 }
 

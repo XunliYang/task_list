@@ -43,8 +43,8 @@ export const createTaskInputSchema = z.object({
 
 export type CreateTaskInput = z.infer<typeof createTaskInputSchema>;
 
-/** 更新任务输入：全部可选，不含 id / createdAt 等不可变字段。 */
-export const updateTaskInputSchema = createTaskInputSchema.partial();
+/** 更新任务输入：全部可选，不含 id / createdAt 等不可变字段；阶段整组替换走独立阶段端点。 */
+export const updateTaskInputSchema = createTaskInputSchema.omit({ stages: true }).partial();
 
 export type UpdateTaskInput = z.infer<typeof updateTaskInputSchema>;
 
@@ -55,6 +55,13 @@ export const advanceStageResultSchema = z.object({
 });
 
 export type AdvanceStageResult = z.infer<typeof advanceStageResultSchema>;
+
+/** 手动回退/切换当前阶段输入。 */
+export const setCurrentStageInputSchema = z.object({
+  stageId: z.string().min(1),
+});
+
+export type SetCurrentStageInput = z.infer<typeof setCurrentStageInputSchema>;
 
 // ============================================================================
 // 状态分类 DTO
