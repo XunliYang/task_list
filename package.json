@@ -1,0 +1,24 @@
+{
+  "name": "task_list",
+  "version": "0.1.0",
+  "private": true,
+  "description": "任务进展跟踪网站（Task Progress Tracker）—— monorepo",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm run dev -w @task-list/api",
+    "dev:web": "npm run dev -w @task-list/web",
+    "build": "npm run build -w @task-list/shared && npm run build -w @task-list/api && npm run build -w @task-list/web",
+    "test": "npm run test -w @task-list/shared && npm run test -w @task-list/api",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
