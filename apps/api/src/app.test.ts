@@ -317,6 +317,23 @@ describe('考试/面试信息', () => {
     expect(res.body.items[0].source).toBe('import');
   });
 
+  it('POST /api/exams/import：列数与表头不符（无逗号）的行 → 计入 skipped，不产生记录', async () => {
+    const content = [
+      'title,type,company,deadline,url,location,status,notes',
+      'ACME 笔试,exam,ACME,2026-10-01,https://acme.com,北京,待报名,备注',
+      'broken-line-no-commas',
+      '',
+    ].join('\n');
+
+    const res = await request(app).post('/api/exams/import').send({ format: 'csv', content });
+    expect(res.status).toBe(201);
+    expect(res.body.imported).toBe(1);
+    expect(res.body.skipped).toBe(1);
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0].title).toBe('ACME 笔试');
+    expect(res.body.items[0].type).toBe('exam');
+  });
+
   it('POST /api/exams/:id/to-task 二次调用 → 409 already_converted', async () => {
     const exam = await request(app).post('/api/exams').send({
       title: 'ACME 一面',
