@@ -12,7 +12,7 @@
     "dev:api": "npm run dev -w @task-list/api",
     "dev:web": "npm run dev -w @task-list/web",
     "build": "npm run build -w @task-list/shared && npm run build -w @task-list/api && npm run build -w @task-list/web",
-    "test": "npm run test -w @task-list/shared && npm run test -w @task-list/api",
+    "test": "npm run test -w @task-list/shared && npm run test -w @task-list/api && npm run test -w @task-list/web",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "engines": {
