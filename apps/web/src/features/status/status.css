@@ -40,11 +40,11 @@
 }
 
 .status-count {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
 .status-order {
-  color: #999;
+  color: var(--text-secondary);
   font-size: 12px;
 }
