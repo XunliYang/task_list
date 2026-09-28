@@ -123,6 +123,15 @@ export function useAddStage(id: string) {
   });
 }
 
+export function useReorderStages(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (stageIds: string[]) =>
+      http.patch<Task>(`/tasks/${id}/stages/order`, { stageIds }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: taskKeys.details() }),
+  });
+}
+
 export function useUpdateStage(id: string) {
   const queryClient = useQueryClient();
   return useMutation({

@@ -28,6 +28,13 @@ export const updateStageInputSchema = z.object({
 
 export type UpdateStageInput = z.infer<typeof updateStageInputSchema>;
 
+/** 批量重排阶段输入：按新顺序给出该任务全部阶段 id。 */
+export const reorderStagesInputSchema = z.object({
+  stageIds: z.array(z.string().min(1)).min(1),
+});
+
+export type ReorderStagesInput = z.infer<typeof reorderStagesInputSchema>;
+
 /**
  * 创建任务输入。
  * tags / notes 提供默认值，服务端据此生成完整 Task（id / createdAt 等由服务端生成）。

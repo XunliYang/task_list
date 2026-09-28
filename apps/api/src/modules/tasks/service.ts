@@ -6,6 +6,7 @@ import type {
   CreateTaskInput,
   DataSnapshot,
   ProgressEntry,
+  ReorderStagesInput,
   Stage,
   StageStatus,
   Task,
@@ -322,7 +323,52 @@ export function addStage(
   };
 
   const stages = normalizeStages([...task.stages, stage]);
-  const updated: Task = { ...task, stages, updatedAt: now() };
+  const updated: Task = {
+    ...task,
+    stages,
+    currentStageId: computeCurrentStageId(stages),
+    updatedAt: now(),
+  };
+  return { snapshot: withTask(snapshot, updated), task: updated };
+}
+
+export interface ReorderStagesResult {
+  snapshot: DataSnapshot;
+  task: Task;
+}
+
+export function reorderStages(
+  snapshot: DataSnapshot,
+  taskId: string,
+  input: ReorderStagesInput,
+): ReorderStagesResult {
+  const task = getTask(snapshot, taskId);
+
+  const existingIds = task.stages.map((s) => s.id);
+  const existingSet = new Set(existingIds);
+  const requestedSet = new Set(input.stageIds);
+
+  const missing = existingIds.filter((id) => !requestedSet.has(id));
+  const extra = input.stageIds.filter((id) => !existingSet.has(id));
+  const hasDuplicate = requestedSet.size !== input.stageIds.length;
+
+  if (missing.length > 0 || extra.length > 0 || hasDuplicate) {
+    throw new HttpError(
+      400,
+      'invalid_stage_order',
+      '阶段顺序必须包含且仅包含该任务的全部阶段 id（无缺失、无多余、无重复）',
+    );
+  }
+
+  const byId = new Map(task.stages.map((s) => [s.id, s]));
+  const stages = normalizeStages(input.stageIds.map((id) => byId.get(id) as Stage));
+
+  const updated: Task = {
+    ...task,
+    stages,
+    currentStageId: computeCurrentStageId(stages),
+    updatedAt: now(),
+  };
   return { snapshot: withTask(snapshot, updated), task: updated };
 }
 
