@@ -1,27 +1,27 @@
-/* 页首导航壳层样式（LEOY-100） */
+/* 页首导航壳层样式（LEOY-102 主题化：全部走设计令牌，无颜色字面量） */
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f7f8fa;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: transparent;
+  font-family: var(--font-sans);
 }
 
 .app-shell-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .app-shell-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 var(--space-5);
   height: 52px;
 }
 
@@ -29,35 +29,55 @@
   display: inline-flex;
   align-items: center;
   padding: 6px 14px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
-  color: #555;
+  color: var(--text-secondary);
   text-decoration: none;
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
 }
 
 .app-shell-nav-link:hover {
-  background: #f0f2f5;
-  color: #111;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .app-shell-nav-link--active {
-  background: #eef4ff;
-  color: #1a56db;
+  background: var(--accent-soft);
+  color: var(--accent);
   font-weight: 600;
 }
 
 /* 悬停当前高亮入口时保持激活态配色，避免高亮被 hover 灰覆盖 */
 .app-shell-nav-link--active:hover {
-  background: #eef4ff;
-  color: #1a56db;
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .app-shell-nav-link:focus-visible {
-  outline: 2px solid #1a56db;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 .app-shell-main {
   flex: 1;
+}
+
+/* 统一容器：与导航同宽，响应式内边距 */
+.app-shell-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-5);
+}
+
+@media (max-width: 720px) {
+  .app-shell-nav {
+    padding: 0 var(--space-4);
+  }
+
+  .app-shell-container {
+    padding: var(--space-4);
+  }
 }

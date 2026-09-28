@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { AppShell } from './AppShell';
+
+// 直接读取唯一令牌来源，做「浅断言」：令牌变量存在即可，不绑定具体色值。
+// vitest 以 web 工作区（apps/web）为 cwd 运行，故用 cwd 定位。
+const themeCss = readFileSync(resolve(process.cwd(), 'src/styles/theme.css'), 'utf8');
 
 function renderShell(initialPath: string) {
   render(
@@ -79,5 +85,51 @@ describe('AppShell 导航', () => {
     renderShell('/board');
     const active = screen.getAllByRole('link', { current: 'page' });
     expect(active).toHaveLength(1);
+  });
+});
+
+describe('AppShell 主题化壳层（设计令牌）', () => {
+  it('壳层使用令牌化结构类名', () => {
+    renderShell('/');
+    const shell = document.querySelector('.app-shell');
+    expect(shell).toBeInTheDocument();
+    expect(shell?.querySelector('.app-shell-header')).toBeInTheDocument();
+    expect(shell?.querySelector('.app-shell-nav')).toBeInTheDocument();
+    expect(shell?.querySelector('.app-shell-main')).toBeInTheDocument();
+    expect(shell?.querySelector('.app-shell-container')).toBeInTheDocument();
+  });
+
+  it('主题令牌变量已声明（唯一令牌来源 theme.css）', () => {
+    const tokens = [
+      '--bg-base',
+      '--bg-surface',
+      '--bg-surface-2',
+      '--bg-elevated',
+      '--border-subtle',
+      '--border-strong',
+      '--text-primary',
+      '--text-secondary',
+      '--text-muted',
+      '--accent',
+      '--accent-soft',
+      '--accent-glow',
+      '--danger',
+      '--success',
+      '--warning',
+      '--radius-sm',
+      '--radius-md',
+      '--radius-lg',
+      '--shadow-card',
+      '--shadow-glow',
+      '--space-1',
+      '--space-6',
+      '--font-sans',
+      '--font-mono',
+      '--duration-fast',
+      '--duration-base',
+    ];
+    for (const token of tokens) {
+      expect(themeCss, `缺少令牌 ${token}`).toContain(`${token}:`);
+    }
   });
 });
