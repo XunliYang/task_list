@@ -1,0 +1,411 @@
+.calendar-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  height: 100%;
+}
+
+.calendar-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.calendar-page__title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendar-page__title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  min-width: 160px;
+  text-align: center;
+}
+
+.calendar-page__nav,
+.calendar-page__today,
+.calendar-page__view-toggle button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid #d0d7de;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: #24292f;
+}
+
+.calendar-page__nav:hover,
+.calendar-page__today:hover,
+.calendar-page__view-toggle button:hover {
+  background: #f6f8fa;
+}
+
+.calendar-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calendar-page__view-toggle {
+  display: inline-flex;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.calendar-page__view-toggle button {
+  border: none;
+  border-radius: 0;
+  border-right: 1px solid #d0d7de;
+}
+
+.calendar-page__view-toggle button:last-child {
+  border-right: none;
+}
+
+.calendar-page__view-toggle button.is-active {
+  background: #1976d2;
+  color: #fff;
+}
+
+.calendar-page__status {
+  color: #57606a;
+  text-align: center;
+}
+
+.calendar-page__body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+}
+
+.calendar-page__grid {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ---------- 网格通用 ---------- */
+.calendar-grid__weekdays,
+.calendar-grid__cells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-grid__weekday {
+  text-align: center;
+  padding: 8px 4px;
+  font-weight: 600;
+  color: #57606a;
+  font-size: 13px;
+}
+
+/* ---------- 日单元格 ---------- */
+.day-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 96px;
+  padding: 6px;
+  border: 1px solid #eaeef2;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+}
+
+.day-cell:hover {
+  background: #f6f8fa;
+}
+
+.day-cell--outside {
+  background: #fafbfc;
+  opacity: 0.55;
+}
+
+.day-cell--today {
+  border: 2px solid #1976d2;
+}
+
+.day-cell--selected {
+  outline: 2px solid #1976d2;
+  outline-offset: 1px;
+}
+
+.day-cell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.day-cell__num {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.day-cell__overdue {
+  background: #d1242f;
+  color: #fff;
+  border-radius: 999px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.day-cell__events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.day-cell__event {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #24292f;
+  overflow: hidden;
+}
+
+.day-cell__dot-mark,
+.week-grid__mark {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+.day-cell__event-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.day-cell__event--done .day-cell__event-text {
+  text-decoration: line-through;
+  color: #8c959f;
+}
+
+.day-cell__event--overdue .day-cell__event-text {
+  color: #d1242f;
+}
+
+.day-cell__more {
+  font-size: 11px;
+  color: #57606a;
+}
+
+.day-cell__updated {
+  display: flex;
+  gap: 3px;
+  margin-top: auto;
+}
+
+.day-cell__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  opacity: 0.35;
+}
+
+/* ---------- 周视图 ---------- */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.week-grid__col {
+  border: 1px solid #eaeef2;
+  border-radius: 8px;
+  background: #fff;
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+}
+
+.week-grid__col--today {
+  border: 2px solid #1976d2;
+}
+
+.week-grid__col--selected {
+  outline: 2px solid #1976d2;
+  outline-offset: 1px;
+}
+
+.week-grid__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.week-grid__weekday {
+  font-size: 12px;
+  color: #57606a;
+}
+
+.week-grid__date {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.week-grid__events {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.week-grid__event {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 12px;
+  padding: 4px;
+  border-radius: 6px;
+  background: #f6f8fa;
+}
+
+.week-grid__mark {
+  margin-top: 3px;
+}
+
+.week-grid__mark--dim {
+  opacity: 0.35;
+}
+
+.week-grid__event--done .week-grid__text {
+  text-decoration: line-through;
+  color: #8c959f;
+}
+
+.week-grid__event--overdue .week-grid__text {
+  color: #d1242f;
+}
+
+.week-grid__text {
+  word-break: break-word;
+}
+
+.week-grid__empty {
+  font-size: 12px;
+  color: #c0c6cc;
+  text-align: center;
+  list-style: none;
+}
+
+/* ---------- 日详情面板 ---------- */
+.day-detail {
+  width: 300px;
+  flex: 0 0 300px;
+  border: 1px solid #eaeef2;
+  border-radius: 8px;
+  background: #fff;
+  padding: 12px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.day-detail__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eaeef2;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.day-detail__title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.day-detail__close {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  color: #57606a;
+}
+
+.day-detail__empty {
+  color: #57606a;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.day-detail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.day-detail__item {
+  padding: 8px;
+  border: 1px solid #eaeef2;
+  border-radius: 6px;
+}
+
+.day-detail__item--done .day-detail__task {
+  text-decoration: line-through;
+  color: #8c959f;
+}
+
+.day-detail__task {
+  display: block;
+  font-weight: 600;
+  color: #1976d2;
+  text-decoration: none;
+  margin-bottom: 4px;
+}
+
+.day-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #57606a;
+}
+
+.day-detail__overdue {
+  color: #d1242f;
+  font-weight: 600;
+}
+
+.day-detail__current {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #57606a;
+}
