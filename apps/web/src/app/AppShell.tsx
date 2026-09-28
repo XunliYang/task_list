@@ -38,7 +38,7 @@ export function AppShell() {
           })}
         </nav>
       </header>
-      <main className="app-shell-main">
+      <main className="app-shell-main app-shell-container">
         <Outlet />
       </main>
     </div>
