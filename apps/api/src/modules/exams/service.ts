@@ -181,7 +181,7 @@ function trimOrNull(value: string | undefined): string | null {
   return trimmed ? trimmed : null;
 }
 
-/** 从 CSV 文本解析出 ExamInfo 列表；返回无法解析（缺 title / 非法 type）的行数。 */
+/** 从 CSV 文本解析出 ExamInfo 列表；返回无法解析（缺 title / 非法 type / 列数与表头不符）的行数。 */
 export function parseExamsFromCsv(content: string): {
   exams: ExamInfo[];
   skipped: number;
@@ -196,12 +196,20 @@ export function parseExamsFromCsv(content: string): {
     throw new HttpError(400, 'validation_error', 'CSV 表头缺少必需列 title/type');
   }
   const indexOf = (name: string) => header.indexOf(name);
+  // 关键列（title/type）在表头中的最大下标：行必须覆盖到该列，否则列数与表头不符。
+  const requiredCols = Math.max(indexOf('title'), indexOf('type'));
 
   const exams: ExamInfo[] = [];
   let skipped = 0;
 
   for (let r = 1; r < rows.length; r++) {
     const cols = rows[r];
+    // 列数不足关键列：无法可靠映射（首列会被兜底成 title、type 兜底成 exam），直接跳过。
+    if (cols.length <= requiredCols) {
+      skipped++;
+      continue;
+    }
+
     const pick = (name: string) => {
       const idx = indexOf(name);
       return idx >= 0 ? cols[idx] : undefined;
