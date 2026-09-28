@@ -153,6 +153,7 @@
 .day-cell__num {
   font-weight: 600;
   font-size: 14px;
+  color: #24292f;
 }
 
 .day-cell__overdue {
@@ -274,6 +275,7 @@
 .week-grid__date {
   font-size: 14px;
   font-weight: 600;
+  color: #24292f;
 }
 
 .week-grid__events {
@@ -314,6 +316,7 @@
 
 .week-grid__text {
   word-break: break-word;
+  color: #24292f;
 }
 
 .week-grid__empty {
@@ -348,6 +351,7 @@
   font-size: 15px;
   font-weight: 600;
   margin: 0;
+  color: #24292f;
 }
 
 .day-detail__close {
