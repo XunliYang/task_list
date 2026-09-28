@@ -47,6 +47,17 @@
   font-weight: 600;
 }
 
+/* 悬停当前高亮入口时保持激活态配色，避免高亮被 hover 灰覆盖 */
+.app-shell-nav-link--active:hover {
+  background: #eef4ff;
+  color: #1a56db;
+}
+
+.app-shell-nav-link:focus-visible {
+  outline: 2px solid #1a56db;
+  outline-offset: 2px;
+}
+
 .app-shell-main {
   flex: 1;
 }
