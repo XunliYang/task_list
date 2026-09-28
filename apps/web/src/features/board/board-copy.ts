@@ -30,6 +30,9 @@ export const boardCopy = {
   stagesLabel: '阶段',
   tagsLabel: '标签',
   viewTaskLabel: '查看任务详情',
+  moveToLabel: '移动到…',
+  moveToMenuLabel: '选择目标状态分类',
+  moveError: '移动任务失败，已恢复到原状态。',
 } as const;
 
 /** 阶段状态 → 中文标签。 */
