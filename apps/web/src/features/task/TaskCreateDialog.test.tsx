@@ -84,6 +84,20 @@ describe('TaskCreateDialog', () => {
     expect(onCreated).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('删除唯一阶段后提交按钮禁用且提示「至少保留一个阶段」', async () => {
+    renderDialog();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('标题'), '投递 ACME');
+    expect(screen.getByRole('button', { name: '创建' })).toBeEnabled();
+
+    await user.click(screen.getByLabelText('删除阶段 1'));
+
+    expect(screen.getByRole('button', { name: '创建' })).toBeDisabled();
+    expect(screen.getByText('至少保留一个阶段')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '创建' }));
+    expect(mutateMock).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------

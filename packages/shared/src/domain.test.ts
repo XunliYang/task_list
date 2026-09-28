@@ -38,7 +38,7 @@ describe('createTaskInputSchema', () => {
     const parsed = createTaskInputSchema.parse({
       title: '投递简历',
       statusId: 'status-in-progress',
-      stages: [],
+      stages: [{ name: '准备' }],
     });
     expect(parsed.tags).toEqual([]);
     expect(parsed.notes).toBe('');
