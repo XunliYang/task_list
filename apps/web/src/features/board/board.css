@@ -419,3 +419,83 @@
   color: #d32f2f;
   font-weight: 600;
 }
+
+/* ------------------------------ 快捷新建入口（LEOY-104） ------------------------------ */
+/* 消费 stage 1 设计令牌，不新增颜色字面量。 */
+
+.board-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.board-title-row .board-title {
+  margin: 0;
+}
+
+.board-add-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.board-add-primary:hover {
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+.board-column-add {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) ease,
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
+}
+
+.board-column-add:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* 「已创建」轻提示 */
+.board-toast {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  box-shadow: var(--shadow-glow);
+  z-index: 1100;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-add-primary,
+  .board-column-add {
+    transition: none;
+  }
+}

@@ -232,3 +232,140 @@
 .empty-hint {
   color: #999;
 }
+
+/* ============================================================================
+ * 快捷新建任务弹窗（LEOY-104）——复用 `.dialog-overlay` / `.dialog` 基础类，
+ * 表单与卡片样式全部消费 stage 1 设计令牌，不新增颜色字面量。
+ * ========================================================================== */
+
+.task-create-dialog {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-glow);
+  min-width: 420px;
+}
+
+.task-create-dialog h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 17px;
+  color: var(--text-primary);
+}
+
+.task-create-dialog label,
+.task-create-dialog .field {
+  color: var(--text-secondary);
+}
+
+.task-create-dialog input[type='text'],
+.task-create-dialog input[type='date'],
+.task-create-dialog textarea,
+.task-create-dialog select {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: var(--space-1);
+  padding: 8px 10px;
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+}
+
+.task-create-dialog input::placeholder,
+.task-create-dialog textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* 标签编辑器里的输入框不做整宽，与已添加的标签芯片同行排列 */
+.task-create-dialog .tag-editor input[type='text'] {
+  width: auto;
+  flex: 1;
+  min-width: 120px;
+  margin-top: 0;
+}
+
+.task-create-dialog .tag-chip {
+  background: var(--bg-surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.task-create-dialog .tag-chip button {
+  padding: 0 var(--space-1);
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.task-create-dialog .field-error {
+  color: var(--danger);
+}
+
+/* 阶段草稿列表（本地编辑，未持久化） */
+.stage-draft-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-2) 0 0;
+}
+
+.stage-draft-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+}
+
+.stage-draft-list .stage-pill {
+  min-width: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.stage-draft-list input[type='text'] {
+  flex: 1;
+  min-width: 0;
+}
+
+.stage-draft-list .due-date-picker input[type='date'] {
+  width: auto;
+}
+
+.task-create-dialog .create-add-stage {
+  margin-top: var(--space-1);
+}
+
+.task-create-dialog button {
+  font: inherit;
+  color: var(--text-primary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.task-create-dialog button:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.task-create-dialog button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.task-create-dialog .dialog-actions button[type='submit'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-create-dialog button {
+    transition: none;
+  }
+}
