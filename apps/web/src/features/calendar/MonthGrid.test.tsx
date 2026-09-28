@@ -17,7 +17,7 @@ describe('MonthGrid 月视图渲染', () => {
 
   it('2026-09 第一格是 8/31，最后一格是 10/11', () => {
     const { container } = render(<MonthGrid {...baseProps} />);
-    const buttons = container.querySelectorAll<HTMLButtonElement>('.day-cell');
+    const buttons = container.querySelectorAll<HTMLDivElement>('.day-cell');
     expect(buttons).toHaveLength(42);
 
     // 每个单元格以 aria-label 携带其日期键。

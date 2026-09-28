@@ -7,6 +7,8 @@ export const CALENDAR_COPY = {
   monthTitle: (year: number, month: number) => `${year}年${month + 1}月`,
   prev: '上个月',
   next: '下个月',
+  prevWeek: '上一周',
+  nextWeek: '下一周',
   today: '今天',
   monthView: '月',
   weekView: '周',

@@ -69,4 +69,9 @@ describe('addDays / addMonths / toYearMonth / formatWeekRange', () => {
   it('formatWeekRange 同月省略月，跨月分别标注', () => {
     expect(formatWeekRange(new Date(2026, 8, 28))).toBe('9月28日 – 10月4日');
   });
+
+  it('formatWeekRange 跨年周带上年份', () => {
+    // 2026-12-28（周一）所在周跨到 2027-01-03。
+    expect(formatWeekRange(new Date(2026, 11, 28))).toBe('2026年12月28日 – 2027年1月3日');
+  });
 });

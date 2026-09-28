@@ -4,13 +4,7 @@ import { useCalendarEvents } from './useCalendarEvents';
 import { MonthGrid } from './MonthGrid';
 import { WeekGrid } from './WeekGrid';
 import { DayDetailPanel } from './DayDetailPanel';
-import {
-  addDays,
-  addMonths,
-  formatWeekRange,
-  fromDateKey,
-  toYearMonth,
-} from './calendar-date';
+import { addDays, addMonths, formatWeekRange, toYearMonth } from './calendar-date';
 import { CALENDAR_COPY } from './calendar-copy';
 import './calendar.css';
 
@@ -68,7 +62,7 @@ export function CalendarPage({ now }: CalendarPageProps = {}) {
       />
     ) : (
       <WeekGrid
-        anchor={selectedDate ? fromDateKey(selectedDate) : cursor}
+        anchor={cursor}
         today={today}
         eventsByDate={eventsByDate}
         selectedDate={selectedDate}
@@ -84,7 +78,7 @@ export function CalendarPage({ now }: CalendarPageProps = {}) {
             type="button"
             className="calendar-page__nav"
             onClick={handlePrev}
-            aria-label={CALENDAR_COPY.prev}
+            aria-label={view === 'month' ? CALENDAR_COPY.prev : CALENDAR_COPY.prevWeek}
           >
             《
           </button>
@@ -93,7 +87,7 @@ export function CalendarPage({ now }: CalendarPageProps = {}) {
             type="button"
             className="calendar-page__nav"
             onClick={handleNext}
-            aria-label={CALENDAR_COPY.next}
+            aria-label={view === 'month' ? CALENDAR_COPY.next : CALENDAR_COPY.nextWeek}
           >
             》
           </button>

@@ -77,11 +77,19 @@ export function formatShortDate(date: Date): string {
   return `${date.getMonth() + 1}月${date.getDate()}日`;
 }
 
-/** 周范围标题，如「9月28日 – 10月4日」。 */
+/** '2026年12月28日' 完整日期（含年份），用于跨年周标题。 */
+export function formatFullDate(date: Date): string {
+  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
+}
+
+/** 周范围标题，如「9月28日 – 10月4日」；跨年时带上年份「2026年12月28日 – 2027年1月3日」。 */
 export function formatWeekRange(anchor: Date): string {
   const days = buildWeekGrid(anchor);
   const from = days[0];
   const to = days[6];
+  if (from.getFullYear() !== to.getFullYear()) {
+    return `${formatFullDate(from)} – ${formatFullDate(to)}`;
+  }
   if (from.getMonth() === to.getMonth()) {
     return `${from.getMonth() + 1}月${from.getDate()}日 – ${to.getDate()}日`;
   }
