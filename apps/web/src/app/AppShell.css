@@ -23,6 +23,13 @@
   margin: 0 auto;
   padding: 0 20px;
   height: 52px;
+  /* 窄屏下入口超出视口时改为横向滚动，避免 flex nowrap 挤压导致词内折行 */
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.app-shell-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .app-shell-nav-link {
@@ -34,6 +41,9 @@
   color: #555;
   text-decoration: none;
   transition: background-color 0.12s ease, color 0.12s ease;
+  /* 入口文字单行展示，窄屏下宁可横向滚动也不逐字折行 */
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .app-shell-nav-link:hover {
