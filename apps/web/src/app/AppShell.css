@@ -1,0 +1,63 @@
+/* 页首导航壳层样式（LEOY-100） */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f7f8fa;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.app-shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.app-shell-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+  height: 52px;
+}
+
+.app-shell-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #555;
+  text-decoration: none;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.app-shell-nav-link:hover {
+  background: #f0f2f5;
+  color: #111;
+}
+
+.app-shell-nav-link--active {
+  background: #eef4ff;
+  color: #1a56db;
+  font-weight: 600;
+}
+
+/* 悬停当前高亮入口时保持激活态配色，避免高亮被 hover 灰覆盖 */
+.app-shell-nav-link--active:hover {
+  background: #eef4ff;
+  color: #1a56db;
+}
+
+.app-shell-nav-link:focus-visible {
+  outline: 2px solid #1a56db;
+  outline-offset: 2px;
+}
+
+.app-shell-main {
+  flex: 1;
+}

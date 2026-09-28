@@ -138,7 +138,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
+  /* 高于应用 chrome（页首 sticky 导航 z-index:100），确保弹窗遮罩盖满整个视口 */
+  z-index: 1000;
 }
 
 .dialog {
