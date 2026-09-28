@@ -50,7 +50,11 @@ export function useUpdateExam(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: UpdateExamInfoInput) => http.patch<ExamInfo>(`/exams/${id}`, input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: examKeys.details() }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: examKeys.lists() }),
+        queryClient.invalidateQueries({ queryKey: examKeys.detail(id) }),
+      ]),
   });
 }
 
