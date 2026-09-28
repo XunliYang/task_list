@@ -75,7 +75,7 @@
 }
 
 .calendar-page__status {
-  color: #57606a;
+  color: var(--text-secondary);
   text-align: center;
 }
 
@@ -104,7 +104,7 @@
   text-align: center;
   padding: 8px 4px;
   font-weight: 600;
-  color: #57606a;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
@@ -123,7 +123,7 @@
   cursor: pointer;
   font: inherit;
   text-align: left;
-  color: inherit;
+  color: #24292f;
 }
 
 .day-cell:hover {
@@ -274,6 +274,7 @@
 .week-grid__date {
   font-size: 14px;
   font-weight: 600;
+  color: #24292f;
 }
 
 .week-grid__events {
@@ -314,6 +315,7 @@
 
 .week-grid__text {
   word-break: break-word;
+  color: #24292f;
 }
 
 .week-grid__empty {
@@ -348,6 +350,7 @@
   font-size: 15px;
   font-weight: 600;
   margin: 0;
+  color: #24292f;
 }
 
 .day-detail__close {

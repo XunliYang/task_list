@@ -70,6 +70,7 @@
   align-items: center;
   gap: 4px;
   font-size: 13px;
+  color: #333;
   cursor: pointer;
 }
 
@@ -84,6 +85,7 @@
   border: 1px solid #d4d4d8;
   border-radius: 4px;
   background: #fff;
+  color: #333;
   cursor: pointer;
 }
 
@@ -98,6 +100,7 @@
   align-items: center;
   gap: 4px;
   font-size: 13px;
+  color: #333;
   cursor: pointer;
 }
 
@@ -161,6 +164,7 @@
 .board-column-title {
   font-size: 14px;
   margin: 0;
+  color: #333;
   flex: 1;
 }
 
@@ -196,7 +200,7 @@
   border-radius: 8px;
   padding: 10px 12px;
   text-decoration: none;
-  color: inherit;
+  color: #333;
   transition: box-shadow 0.12s ease, transform 0.12s ease;
 }
 
