@@ -1,0 +1,234 @@
+/* 首页概览样式（LEOY-105）—— 全部消费 stage 1 设计令牌，无颜色字面量。 */
+
+.home-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.home-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.home-title {
+  font-size: 22px;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.home-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* ------------------------------ 指标网格 ------------------------------ */
+.home-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+
+/* ------------------------------ 卡片外壳 ------------------------------ */
+.section-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.section-card--link {
+  transition:
+    border-color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    transform var(--duration-fast) ease;
+}
+
+.section-card--link:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+.section-card--link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.section-card--accent {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.section-card__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.section-card__value {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.section-card__body {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ------------------------------ 状态分类列表 ------------------------------ */
+.home-status-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.home-status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.home-status-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-sm);
+}
+
+.home-status-name {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.home-status-count {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  border-radius: var(--radius-sm);
+  padding: 1px 8px;
+}
+
+.home-status-empty {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ------------------------------ 快捷入口 ------------------------------ */
+.home-entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.home-entry-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ------------------------------ 空态 ------------------------------ */
+.home-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
+  background: var(--bg-surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.home-empty-title {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.home-empty-hint {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.home-empty-new {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--space-2);
+  padding: 8px 18px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease;
+}
+
+.home-empty-new:hover {
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-glow);
+}
+
+/* ------------------------------ 加载 / 错误态 ------------------------------ */
+.home-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.home-state p {
+  margin: 0;
+}
+
+.home-retry {
+  padding: 8px 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background var(--duration-fast) ease;
+}
+
+.home-retry:hover {
+  background: var(--bg-elevated);
+}
+
+/* 动效只在用户未要求减少动态时启用 */
+@media (prefers-reduced-motion: reduce) {
+  .section-card--link,
+  .home-empty-new,
+  .home-retry {
+    transition: none;
+  }
+
+  .section-card--link:hover {
+    transform: none;
+  }
+}
