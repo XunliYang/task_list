@@ -206,6 +206,29 @@ describe('进展记录', () => {
     expect(list.body[0].summary).toBe('第二条进展');
   });
 
+  it('POST 纯空白 summary → 400 且时间线不产生空白条目', async () => {
+    const task = await createTaskViaApi();
+
+    const res = await request(app)
+      .post(`/api/tasks/${task.id}/progress`)
+      .send({ summary: '  ' });
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('validation_error');
+
+    const list = await request(app).get(`/api/tasks/${task.id}/progress`);
+    expect(list.body).toEqual([]);
+  });
+
+  it('POST 带首尾空白的 summary → 入库前被 trim', async () => {
+    const task = await createTaskViaApi();
+
+    const res = await request(app)
+      .post(`/api/tasks/${task.id}/progress`)
+      .send({ summary: '  进展  ' });
+    expect(res.status).toBe(201);
+    expect(res.body.summary).toBe('进展');
+  });
+
   it('GET 不存在的任务的进展 → 404', async () => {
     const res = await request(app).get('/api/tasks/nope/progress');
     expect(res.status).toBe(404);

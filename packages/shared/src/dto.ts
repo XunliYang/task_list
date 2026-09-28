@@ -7,7 +7,7 @@ import { examInfoSchema, stageStatusSchema, taskSchema, stageSchema } from './do
 
 /** 创建任务时传入的阶段（id / order / status / completedAt 由服务端生成） */
 export const createStageInputSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().trim().min(1),
   /** ISO date 'YYYY-MM-DD' */
   dueDate: z.string().nullable().optional(),
 });
@@ -21,7 +21,7 @@ export type AddStageInput = z.infer<typeof addStageInputSchema>;
 
 /** 更新阶段输入：name / dueDate / status 均可选 */
 export const updateStageInputSchema = z.object({
-  name: z.string().min(1).optional(),
+  name: z.string().trim().min(1).optional(),
   dueDate: z.string().nullable().optional(),
   status: stageStatusSchema.optional(),
 });
@@ -33,7 +33,7 @@ export type UpdateStageInput = z.infer<typeof updateStageInputSchema>;
  * tags / notes 提供默认值，服务端据此生成完整 Task（id / createdAt 等由服务端生成）。
  */
 export const createTaskInputSchema = z.object({
-  title: z.string().min(1),
+  title: z.string().trim().min(1),
   company: z.string().nullable().optional(),
   tags: z.array(z.string()).default([]),
   notes: z.string().default(''),
@@ -69,7 +69,7 @@ export type SetCurrentStageInput = z.infer<typeof setCurrentStageInputSchema>;
 
 /** 创建状态分类输入。 */
 export const createStatusInputSchema = z.object({
-  name: z.string().min(1),
+  name: z.string().trim().min(1),
   color: z.string().min(1),
   order: z.number().int().optional(),
 });
@@ -87,7 +87,7 @@ export type UpdateStatusInput = z.infer<typeof updateStatusInputSchema>;
 
 /** 新增进展输入。 */
 export const createProgressInputSchema = z.object({
-  summary: z.string().min(1),
+  summary: z.string().trim().min(1),
   stageId: z.string().nullable().optional(),
 });
 
@@ -99,7 +99,7 @@ export type CreateProgressInput = z.infer<typeof createProgressInputSchema>;
 
 /** 创建考试/面试信息输入。 */
 export const createExamInfoInputSchema = z.object({
-  title: z.string().min(1),
+  title: z.string().trim().min(1),
   type: z.enum(['exam', 'interview']),
   company: z.string().nullable().optional(),
   deadline: z.string().nullable().optional(),
