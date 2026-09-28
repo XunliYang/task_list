@@ -39,6 +39,29 @@ describe('CalendarPage 周视图导航', () => {
     expect(firstColDate).toBe('9月14日');
   });
 
+  it('周视图选日后点「下一周」关闭详情面板（P2 回归）', () => {
+    const { container } = renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: '周' }));
+    fireEvent.click(screen.getByRole('button', { name: '2026-09-07' }));
+    expect(container.querySelector('.day-detail')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: '下一周' }));
+
+    expect(container.querySelector('.day-detail')).toBeNull();
+  });
+
+  it('月视图选日后点「下个月」关闭详情面板', () => {
+    const { container } = renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: '2026-09-07' }));
+    expect(container.querySelector('.day-detail')).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: '下个月' }));
+
+    expect(container.querySelector('.day-detail')).toBeNull();
+  });
+
   it('周视图导航按钮的无障碍文案为「上一周/下一周」', () => {
     renderPage();
 

@@ -36,6 +36,7 @@ export function CalendarPage({ now }: CalendarPageProps = {}) {
 
   const moveCursor = (next: Date) => {
     setCursor(next);
+    setSelectedDate(null);
     setSearchParams({ ym: toYearMonth(next) }, { replace: true });
   };
 
