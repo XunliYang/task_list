@@ -1,5 +1,17 @@
 import type { Stage, Task } from '@task-list/shared';
 
+/** 按亮度选择深/浅文字色，保证浅色分类名可读。 */
+export function readableTextColor(hex: string): string {
+  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!match) return '#000000';
+  const value = parseInt(match[1], 16);
+  const r = (value >> 16) & 0xff;
+  const g = (value >> 8) & 0xff;
+  const b = value & 0xff;
+  const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+  return luminance > 160 ? '#000000' : '#ffffff';
+}
+
 /** 阶段按 order 升序返回副本。 */
 export function sortedStages(stages: Stage[]): Stage[] {
   return [...stages].sort((a, b) => a.order - b.order);

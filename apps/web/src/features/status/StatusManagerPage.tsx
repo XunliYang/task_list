@@ -9,19 +9,8 @@ import {
   useUpdateStatus,
 } from '../../api/statuses';
 import { useTasks } from '../../api/tasks';
+import { readableTextColor } from '../task/task-utils';
 import './status.css';
-
-/** 按亮度选择深/浅文字色，保证浅色分类名可读。 */
-export function readableTextColor(hex: string): string {
-  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!match) return '#000000';
-  const value = parseInt(match[1], 16);
-  const r = (value >> 16) & 0xff;
-  const g = (value >> 8) & 0xff;
-  const b = value & 0xff;
-  const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-  return luminance > 160 ? '#000000' : '#ffffff';
-}
 
 /** 状态分类管理页（/statuses）：增删改 + 颜色 + 上下调序。 */
 export function StatusManagerPage() {

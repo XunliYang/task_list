@@ -4,6 +4,7 @@ import {
   addStageInputSchema,
   createProgressInputSchema,
   createTaskInputSchema,
+  reorderStagesInputSchema,
   setCurrentStageInputSchema,
   updateStageInputSchema,
   updateTaskInputSchema,
@@ -83,6 +84,12 @@ export function createTasksRouter(store: JsonStore<DataSnapshot>): Router {
     const input = addStageInputSchema.parse(req.body);
     const out = await run(store, (s) => service.addStage(s, req.params.id, input));
     res.status(201).json(out.task);
+  });
+
+  router.patch('/:id/stages/order', async (req, res) => {
+    const input = reorderStagesInputSchema.parse(req.body);
+    const out = await run(store, (s) => service.reorderStages(s, req.params.id, input));
+    res.json(out.task);
   });
 
   router.patch('/:id/stages/:stageId', async (req, res) => {

@@ -7,7 +7,7 @@ import { ProgressTimeline } from './ProgressTimeline';
 import { StageEditorDialog } from './StageEditorDialog';
 import { StageFlowPanel } from './StageFlowPanel';
 import { TaskEditDialog } from './TaskEditDialog';
-import { formatDateTime } from './task-utils';
+import { formatDateTime, readableTextColor } from './task-utils';
 import './task.css';
 
 /** 任务详情页（/tasks/:id）：详情 + 编辑 + 阶段流转 + 进展记录。 */
@@ -67,7 +67,7 @@ export function TaskDetailPage() {
           {status ? (
             <span
               className="status-pill"
-              style={{ backgroundColor: status.color, color: '#ffffff' }}
+              style={{ backgroundColor: status.color, color: readableTextColor(status.color) }}
             >
               {status.name}
             </span>

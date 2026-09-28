@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { CreateTaskInput, DataSnapshot } from '@task-list/shared';
 import { createSeedSnapshot } from '../../store/seed';
-import { advanceStage, createTask, listTasks } from './service';
+import { addStage, advanceStage, createTask, listTasks, reorderStages } from './service';
 
 function snapshot(): DataSnapshot {
   return createSeedSnapshot();
@@ -71,6 +71,56 @@ describe('advanceStage', () => {
     const third = advanceStage(snap, id);
     expect(third.snapshot).toBe(snap);
     expect(third.snapshot.progressEntries).toHaveLength(2);
+  });
+});
+
+describe('addStage', () => {
+  it('0 阶段任务新增第一个阶段后 currentStageId 指向该阶段', () => {
+    let snap = snapshot();
+    const created = createTask(snap, input({ stages: [] }));
+    snap = created.snapshot;
+
+    const out = addStage(snap, created.task.id, { name: '笔试' });
+    expect(out.task.stages).toHaveLength(1);
+    expect(out.task.currentStageId).toBe(out.task.stages[0].id);
+  });
+});
+
+describe('reorderStages', () => {
+  it('合法重排：order 0 起连续、顺序正确、currentStageId 指向重排后的第一个未完成阶段', () => {
+    let snap = snapshot();
+    const created = createTask(snap, input()); // 笔试(in_progress)、一面(pending)
+    snap = created.snapshot;
+    const withThird = addStage(snap, created.task.id, { name: '二面' });
+    snap = withThird.snapshot;
+
+    const ids = withThird.task.stages.map((s) => s.id);
+    const reversed = [...ids].reverse();
+
+    const out = reorderStages(snap, created.task.id, { stageIds: reversed });
+    expect(out.task.stages.map((s) => s.order)).toEqual([0, 1, 2]);
+    expect(out.task.stages.map((s) => s.id)).toEqual(reversed);
+    // 前沿不变式：重排后 currentStageId 指向新顺序下的第一个未完成阶段。
+    expect(out.task.currentStageId).toBe(reversed[0]);
+  });
+
+  it('缺 id / 含重复 id / 多余 id → 400 invalid_stage_order', () => {
+    let snap = snapshot();
+    const created = createTask(snap, input());
+    snap = created.snapshot;
+    const [a, b] = created.task.stages.map((s) => s.id);
+
+    for (const stageIds of [[a], [a, a, b], [a, b, 'missing']]) {
+      let caught: unknown;
+      try {
+        reorderStages(snap, created.task.id, { stageIds });
+      } catch (err) {
+        caught = err;
+      }
+      expect(caught).toBeInstanceOf(Error);
+      expect((caught as { code?: string }).code).toBe('invalid_stage_order');
+      expect((caught as { status?: number }).status).toBe(400);
+    }
   });
 });
 

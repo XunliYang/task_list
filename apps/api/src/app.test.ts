@@ -233,6 +233,48 @@ describe('阶段增删改', () => {
     expect(deleted.status).toBe(200);
     expect(deleted.body.stages).toHaveLength(2);
   });
+
+  it('0 阶段任务 POST stages 首个阶段后 currentStageId 非空', async () => {
+    const task = await createTaskViaApi({ stages: [] });
+    expect(task.currentStageId).toBeNull();
+
+    const res = await request(app)
+      .post(`/api/tasks/${task.id}/stages`)
+      .send({ name: '笔试', dueDate: null });
+    expect(res.status).toBe(201);
+    expect(res.body.stages).toHaveLength(1);
+    expect(res.body.currentStageId).toBe(res.body.stages[0].id);
+  });
+});
+
+describe('阶段重排', () => {
+  it('PATCH /:id/stages/order 三阶段反转 → order 0/1/2、顺序已变、GET 一致', async () => {
+    const task = await createTaskViaApi();
+    const added = await request(app)
+      .post(`/api/tasks/${task.id}/stages`)
+      .send({ name: '二面', dueDate: null });
+    const ids = (added.body.stages as { id: string }[]).map((s) => s.id);
+    const reversed = [...ids].reverse();
+
+    const res = await request(app)
+      .patch(`/api/tasks/${task.id}/stages/order`)
+      .send({ stageIds: reversed });
+    expect(res.status).toBe(200);
+    expect(res.body.stages.map((s: { order: number }) => s.order)).toEqual([0, 1, 2]);
+    expect(res.body.stages.map((s: { id: string }) => s.id)).toEqual(reversed);
+
+    const detail = await request(app).get(`/api/tasks/${task.id}`);
+    expect(detail.body.stages.map((s: { id: string }) => s.id)).toEqual(reversed);
+  });
+
+  it('PATCH /:id/stages/order 缺 id → 400 invalid_stage_order', async () => {
+    const task = await createTaskViaApi();
+    const res = await request(app)
+      .patch(`/api/tasks/${task.id}/stages/order`)
+      .send({ stageIds: [task.stages[0].id] });
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('invalid_stage_order');
+  });
 });
 
 describe('阶段流转 advance', () => {

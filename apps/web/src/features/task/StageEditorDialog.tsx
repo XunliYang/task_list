@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Stage, Task } from '@task-list/shared';
-import { useAddStage, useDeleteStage, useUpdateStage } from '../../api/tasks';
+import { useAddStage, useDeleteStage, useReorderStages, useUpdateStage } from '../../api/tasks';
 import { DueDatePicker } from './DueDatePicker';
 import { isStageOverdue, sortedStages } from './task-utils';
 
@@ -11,19 +11,16 @@ export interface StageEditorDialogProps {
 }
 
 /**
- * 阶段增删改 + 截止时间。
+ * 阶段增删改 + 截止时间 + 上下调整顺序。
  *
  * 每个操作即时持久化（走对应 mutation，成功后由 TanStack Query 失效重取），
- * 不做乐观本地状态复制。
- *
- * 注：阶段「上下调整顺序」依赖 LEOY-83 提供阶段 order 更新接口（当前
- * `UpdateStageInput` 无 order 字段、亦无批量重排端点），本 issue 文件范围内
- * 无法实现，故此处不提供排序控件，已在上报中说明。
+ * 不做乐观本地状态复制。重排走批量端点（一次提交整组顺序）。
  */
 export function StageEditorDialog({ task, open, onClose }: StageEditorDialogProps) {
   const addStage = useAddStage(task.id);
   const updateStage = useUpdateStage(task.id);
   const deleteStage = useDeleteStage(task.id);
+  const reorderStages = useReorderStages(task.id);
 
   const [nameDraft, setNameDraft] = useState('');
 
@@ -33,6 +30,14 @@ export function StageEditorDialog({ task, open, onClose }: StageEditorDialogProp
   function handleAdd() {
     if (addName.length === 0) return;
     addStage.mutate({ name: addName }, { onSuccess: () => setNameDraft('') });
+  }
+
+  function handleMove(index: number, offset: -1 | 1) {
+    const target = index + offset;
+    if (target < 0 || target >= stages.length) return;
+    const ids = stages.map((s) => s.id);
+    [ids[index], ids[target]] = [ids[target], ids[index]];
+    reorderStages.mutate(ids);
   }
 
   function handleRename(stage: Stage, name: string) {
@@ -84,6 +89,22 @@ export function StageEditorDialog({ task, open, onClose }: StageEditorDialogProp
                     逾期
                   </span>
                 )}
+                <button
+                  type="button"
+                  onClick={() => handleMove(index, -1)}
+                  disabled={index === 0}
+                  aria-label={`上移阶段 ${index + 1}`}
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMove(index, 1)}
+                  disabled={index === stages.length - 1}
+                  aria-label={`下移阶段 ${index + 1}`}
+                >
+                  ↓
+                </button>
                 <button
                   type="button"
                   onClick={() => handleDelete(stage)}
