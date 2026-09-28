@@ -516,6 +516,13 @@
   cursor: grabbing;
 }
 
+/* 菜单打开时提升整卡层叠次序：.board-card:hover 的 transform 会创建层叠上下文，
+   使卡片（连同其绝对定位菜单）被 DOM 中靠后的相邻卡片盖住，菜单项点不中甚至误跳对方详情。
+   打开菜单时给卡片 z-index，让整卡浮到后续兄弟卡片之上（LEOY-115）。 */
+.board-card--menu-open {
+  z-index: 10;
+}
+
 /* 放置目标列高亮：描边 + 底色双通道（不只靠颜色），配合 aria-live 文本提示。 */
 .board-column {
   transition: border-color var(--duration-fast) ease, background-color var(--duration-fast) ease;
