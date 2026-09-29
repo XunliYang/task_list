@@ -23,6 +23,28 @@
   margin: 0 auto;
   padding: 0 var(--space-5);
   height: 52px;
+  /* 窄屏下入口超出视口时改为横向滚动，避免 flex nowrap 挤压导致词内折行 */
+  overflow-x: auto;
+  /* 移动端（<768px）隐藏滚动条，避免占用导航条高度 */
+  scrollbar-width: none;
+  /* 滚动到底时保留右侧内边距（兜底：部分浏览器不计入 flex 溢出区的右 padding） */
+  scroll-padding-inline-end: var(--space-5);
+}
+
+.app-shell-nav::-webkit-scrollbar {
+  display: none;
+}
+
+/* 桌面 / 窄窗（≥768px）：入口仍可能横向溢出，保留细滚动条作为滚动提示 */
+@media (min-width: 768px) {
+  .app-shell-nav {
+    scrollbar-width: thin;
+  }
+
+  .app-shell-nav::-webkit-scrollbar {
+    display: initial;
+    height: 4px;
+  }
 }
 
 .app-shell-nav-link {
@@ -33,6 +55,9 @@
   font-size: 14px;
   color: var(--text-secondary);
   text-decoration: none;
+  /* 入口文字单行展示，窄屏下宁可横向滚动也不逐字折行 */
+  white-space: nowrap;
+  flex-shrink: 0;
   transition:
     background-color var(--duration-fast) ease,
     color var(--duration-fast) ease;
@@ -75,6 +100,7 @@
 @media (max-width: 720px) {
   .app-shell-nav {
     padding: 0 var(--space-4);
+    scroll-padding-inline-end: var(--space-4);
   }
 
   .app-shell-container {
