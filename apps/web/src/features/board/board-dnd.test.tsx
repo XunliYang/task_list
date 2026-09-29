@@ -214,3 +214,39 @@ describe('BoardPage 拖拽改状态', () => {
     expect(screen.getByText('DETAIL_PAGE')).toBeInTheDocument();
   });
 });
+
+describe('TaskCard「移动到…」菜单层叠（LEOY-115）', () => {
+  it('打开菜单时给卡片挂上提升层叠上下文的类', () => {
+    renderBoard();
+
+    const title = screen.getByText('投递阿里');
+    const card = title.closest('[data-testid="task-card"]') as HTMLElement;
+    const moveButton = within(card).getByRole('button', { name: boardCopy.moveToLabel });
+
+    expect(card).not.toHaveClass('board-card--menu-open');
+    expect(card).not.toHaveAttribute('data-menu-open');
+
+    fireEvent.click(moveButton);
+
+    expect(card).toHaveClass('board-card--menu-open');
+    expect(card).toHaveAttribute('data-menu-open', 'true');
+  });
+
+  it('选择菜单项触发移动并关闭菜单（移除提升类）', () => {
+    renderBoard();
+
+    const title = screen.getByText('投递阿里');
+    const card = title.closest('[data-testid="task-card"]') as HTMLElement;
+    const moveButton = within(card).getByRole('button', { name: boardCopy.moveToLabel });
+
+    fireEvent.click(moveButton);
+    const menuItem = within(card).getByRole('menuitem', { name: '已完成' });
+    fireEvent.click(menuItem);
+
+    expect(mutateMock).toHaveBeenCalledWith(
+      { statusId: 'status-b' },
+      expect.objectContaining({ onError: expect.any(Function), onSettled: expect.any(Function) }),
+    );
+    expect(card).not.toHaveClass('board-card--menu-open');
+  });
+});

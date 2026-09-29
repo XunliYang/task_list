@@ -74,12 +74,15 @@ export function TaskCard({ task, category, categories, onTaskDrop, now }: TaskCa
 
   return (
     <div
-      className={dragging ? 'board-card board-card--dragging' : 'board-card'}
+      className={`board-card${dragging ? ' board-card--dragging' : ''}${
+        menuOpen ? ' board-card--menu-open' : ''
+      }`}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       data-testid="task-card"
       data-dragging={dragging || undefined}
+      data-menu-open={menuOpen || undefined}
     >
       <Link
         to={`/tasks/${task.id}`}
