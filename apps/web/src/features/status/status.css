@@ -197,6 +197,50 @@
   padding-top: var(--space-1);
 }
 
+/* ── 拖拽调序（LEOY-117） ─────────────────────────────── */
+
+/* 整行作为拖拽手柄（输入框/按钮自带指针样式，会覆盖这里的 grab）。 */
+.status-row {
+  cursor: grab;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.status-row:active {
+  cursor: grabbing;
+}
+
+/* 拖拽中的源行：降透明度 + grabbing，配合 aria-live 文本提示。 */
+.status-row.is-dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+/* 当前悬停的插入目标行：描边 + 底色双通道（不只靠颜色）。 */
+.status-row.is-drop-target {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  background-color: var(--accent-soft);
+}
+
+/* 列表容器空白区作为「拖到最后」的放置目标：虚线描边示意。 */
+.status-table-body.is-drop-to-end {
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+
+/* aria-live 播报用：视觉隐藏但不脱离无障碍树。 */
+.status-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ── 响应式 ───────────────────────────────────────────── */
 
 @media (max-width: 720px) {
@@ -211,5 +255,12 @@
   .status-table-header,
   .status-table-body li {
     min-width: 720px;
+  }
+}
+
+/* 动效统一在减少动效时关闭（拖拽源行/目标行过渡）。 */
+@media (prefers-reduced-motion: reduce) {
+  .status-row {
+    transition: none;
   }
 }

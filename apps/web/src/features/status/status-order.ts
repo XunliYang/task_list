@@ -6,6 +6,9 @@
  * 且 `order` 一律取目标下标（列表从 0 开始），只产出真正发生位置变化的项。
  */
 
+/** 私有 MIME：区分「内部状态行拖拽」与外部文件/文本拖入（与看板 TASK_DRAG_TYPE 同思路）。 */
+export const STATUS_DRAG_TYPE = 'application/x-status-id';
+
 /** 只依赖 id 的最小形状：StatusCategory 满足它即可被复用。 */
 export interface Orderable {
   id: string;
@@ -29,6 +32,25 @@ export function moveItem<T>(list: T[], index: number, offset: number): T[] {
   const next = [...list];
   const [moved] = next.splice(index, 1);
   next.splice(target, 0, moved);
+  return next;
+}
+
+/**
+ * 把 `list` 中下标 `fromIndex` 的项移动到插入槽 `toIndex`（插入位置，∈ [0, list.length]，
+ * `toIndex === list.length` 表示追加到末尾）。与 `moveItem` 不同，这里支持「跨多行直达」，
+ * 用于拖拽调序：把 from 移到 to 之前。
+ * 越界下标、以及「移除后插回同一槽位」（即 from 与 to 相邻的原位移动）均为 no-op，
+ * 返回**原数组引用**（调用方可用 `===` 判断无变化）。
+ */
+export function moveItemTo<T>(list: T[], fromIndex: number, toIndex: number): T[] {
+  if (fromIndex < 0 || fromIndex >= list.length) return list;
+  if (toIndex < 0 || toIndex > list.length) return list;
+  const next = [...list];
+  const [moved] = next.splice(fromIndex, 1);
+  // 移除后，若插入槽位在移除项之后，需左移一位。
+  const insertAt = toIndex > fromIndex ? toIndex - 1 : toIndex;
+  if (insertAt === fromIndex) return list;
+  next.splice(insertAt, 0, moved);
   return next;
 }
 
