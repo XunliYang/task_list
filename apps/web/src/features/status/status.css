@@ -1,7 +1,11 @@
 /*
- * 状态管理页样式（LEOY-106 重构版）。
+ * 状态管理页样式（LEOY-120 暖色迁移版）。
  * 规则：只消费 var(--...) 设计令牌 + 结构尺寸（px/%），不新增颜色字面量；
- * 分类色块的动态颜色由内联 style 提供（保持不变）。
+ * 分类色块的颜色由内联 style（StatusDot 的 --dot-color）提供（保持不变）。
+ *
+ * 行结构： [● StatusDot] [名称 input] [颜色 input] [任务数 Badge]
+ *                                                      [↑] [↓] [保存] [删除]
+ * 分隔线一律 --hairline；行底 --surface-card；文字 --ink / --muted。
  */
 
 .status-manager {
@@ -9,13 +13,15 @@
   margin: 0 auto;
   padding: var(--space-4);
   font-family: var(--font-sans);
+  color: var(--ink);
 }
 
 .status-manager h1 {
   margin: 0 0 var(--space-3);
-  font-size: 20px;
+  font-family: var(--font-display);
+  font-size: 28px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
 /* ── 新增表单 ─────────────────────────────────────────── */
@@ -24,16 +30,16 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin: var(--space-3) 0;
+  margin: var(--space-3) 0 var(--space-4);
 }
 
 .status-manager input[type='text'],
 .status-manager input:not([type]) {
   height: 36px;
   padding: 0 var(--space-3);
-  color: var(--text-primary);
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-subtle);
+  color: var(--ink);
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   font: inherit;
 }
@@ -45,169 +51,116 @@
 
 .status-manager input[type='color'] {
   width: 44px;
-  height: 32px;
+  height: 36px;
   padding: 0;
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-sm);
   cursor: pointer;
-}
-
-/* ── 通用按钮 ─────────────────────────────────────────── */
-
-.status-manager button {
-  font: inherit;
-  font-size: 13px;
-  color: var(--text-primary);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  cursor: pointer;
-  transition:
-    background-color var(--duration-fast) ease,
-    border-color var(--duration-fast) ease;
-}
-
-.status-manager button:hover:not(:disabled) {
-  border-color: var(--border-strong);
-}
-
-.status-manager button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 /* ── 顶部兜底错误 ──────────────────────────────────────── */
 
 .status-error {
-  color: var(--danger);
-  border: 1px solid var(--danger);
+  color: var(--error-text);
+  border: 1px solid var(--error-text);
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-3);
   margin: var(--space-2) 0;
   font-size: 14px;
 }
 
-/* ── 卡片化列表（表头 + 数据行） ───────────────────────── */
+/* ── 行式列表（LEOY-120：去掉表头，逐行自描述） ───────── */
 
-.status-table {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+.status-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
-.status-table-header,
-.status-table-body li {
-  display: grid;
-  grid-template-columns: 150px minmax(200px, 1fr) 60px 96px 128px 172px;
+/* 每一行 = 一个状态分类。 */
+.status-row {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
+  min-height: 64px;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--hairline);
+  cursor: grab;
+  transition: background-color var(--duration-fast) ease;
 }
 
-.status-table-header {
-  color: var(--text-secondary);
-  background: var(--bg-surface-2);
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 13px;
-}
-
-.status-table-body {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.status-table-body li {
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.status-table-body li:last-child {
+.status-list > .status-row:last-child {
   border-bottom: none;
 }
 
-/* ── 单元格 ───────────────────────────────────────────── */
-
-.status-swatch {
-  display: block;
-  width: 100%;
-  padding: 4px var(--space-3);
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 24px;
-  text-align: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.status-name-input {
-  width: 100%;
-}
-
-.status-count,
-.status-order-num {
-  color: var(--text-muted);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-}
-
-.status-order {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.status-move-btn {
-  min-width: 32px;
-  padding: 6px 8px;
-}
-
-.status-actions {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-1);
-}
-
-.status-save-btn {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-color: var(--accent-soft);
-}
-
-.status-delete-btn {
-  color: var(--danger);
-}
-
-.status-saved {
-  color: var(--success);
-  font-size: 13px;
-}
-
-/* 行内错误（改色/改名/删除/调序），占满整行 */
-.status-row-error {
-  grid-column: 1 / -1;
-  color: var(--danger);
-  font-size: 13px;
-  padding-top: var(--space-1);
-}
-
-/* ── 拖拽调序（LEOY-117） ─────────────────────────────── */
-
-/* 整行作为拖拽手柄（输入框/按钮自带指针样式，会覆盖这里的 grab）。 */
-.status-row {
-  cursor: grab;
-  transition: background-color var(--duration-fast) ease;
+.status-row:hover {
+  background: var(--surface-soft);
 }
 
 .status-row:active {
   cursor: grabbing;
 }
+
+/* 左侧：色点 + 可编辑名称 + 可编辑颜色 + 任务数 Badge */
+.status-row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.status-name-input {
+  width: 100%;
+  height: 36px;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0 var(--space-3);
+}
+
+.status-name-input:hover {
+  border-color: var(--border-strong);
+}
+
+/* 右侧：↑ ↓ 保存/取消 删除 */
+.status-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.status-move-btn {
+  min-width: 32px;
+  padding: var(--space-1) var(--space-2);
+  font-size: 14px;
+}
+
+.status-delete-btn {
+  color: var(--error-text);
+}
+
+/* 行内错误（改色/改名/删除/调序），占满整行 */
+.status-row-error {
+  flex-basis: 100%;
+  color: var(--error-text);
+  font-size: 13px;
+}
+
+/* ── 拖拽调序（LEOY-117） ─────────────────────────────── */
 
 /* 拖拽中的源行：降透明度 + grabbing，配合 aria-live 文本提示。 */
 .status-row.is-dragging {
@@ -217,14 +170,14 @@
 
 /* 当前悬停的插入目标行：描边 + 底色双通道（不只靠颜色）。 */
 .status-row.is-drop-target {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--primary);
   outline-offset: -2px;
   background-color: var(--accent-soft);
 }
 
 /* 列表容器空白区作为「拖到最后」的放置目标：虚线描边示意。 */
-.status-table-body.is-drop-to-end {
-  outline: 2px dashed var(--accent);
+.status-list.is-drop-to-end {
+  outline: 2px dashed var(--primary);
   outline-offset: -2px;
 }
 
@@ -248,13 +201,13 @@
     padding: var(--space-3);
   }
 
-  .status-table {
-    overflow-x: auto;
+  .status-row {
+    flex-wrap: wrap;
   }
 
-  .status-table-header,
-  .status-table-body li {
-    min-width: 720px;
+  .status-row-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 }
 
