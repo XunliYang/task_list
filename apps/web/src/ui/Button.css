@@ -1,0 +1,68 @@
+/* 通用按钮（非一次性动作）：全部走设计令牌，无颜色字面量。 */
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
+}
+
+.ui-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.ui-button--primary {
+  background: var(--primary);
+  color: var(--ink);
+  border-color: var(--primary);
+}
+
+.ui-button--primary:hover:not(:disabled) {
+  background: var(--primary-active);
+  color: var(--on-primary);
+}
+
+.ui-button--secondary {
+  background: var(--surface-card);
+  color: var(--ink);
+  border-color: var(--border-strong);
+}
+
+.ui-button--secondary:hover:not(:disabled) {
+  background: var(--surface-strong);
+}
+
+.ui-button--ghost {
+  background: transparent;
+  color: var(--body);
+  border-color: transparent;
+}
+
+.ui-button--ghost:hover:not(:disabled) {
+  background: var(--surface-soft);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-button {
+    transition: none;
+  }
+}

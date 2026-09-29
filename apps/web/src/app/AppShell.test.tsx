@@ -133,3 +133,23 @@ describe('AppShell 主题化壳层（设计令牌）', () => {
     }
   });
 });
+
+describe('AppShell 暖色令牌化壳层（LEOY-118）', () => {
+  it('壳层样式消费新品牌令牌（--canvas / --hairline / --font-display / --primary）', () => {
+    const shellCss = readFileSync(resolve(process.cwd(), 'src/app/AppShell.css'), 'utf8');
+    for (const token of ['--canvas', '--hairline', '--font-display', '--primary']) {
+      expect(shellCss, `壳层缺少 ${token}`).toContain(token);
+    }
+  });
+
+  it('主题令牌表声明 --canvas 与 --font-display', () => {
+    expect(themeCss).toContain('--canvas:');
+    expect(themeCss).toContain('--font-display:');
+  });
+
+  it('壳层渲染衬线品牌名', () => {
+    renderShell('/');
+    expect(screen.getByText('任务进展')).toBeInTheDocument();
+    expect(document.querySelector('.app-shell-brand')).toBeInTheDocument();
+  });
+});

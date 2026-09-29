@@ -1,0 +1,175 @@
+/* 任务行 —— 每个任务用行展示；全部走设计令牌，无颜色字面量。 */
+.ui-row {
+  position: relative;
+  list-style: none;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.ui-row:last-child {
+  border-bottom: none;
+}
+
+.ui-row-link {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  min-height: 64px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: background-color var(--duration-fast) ease;
+}
+
+.ui-row-link:hover {
+  background: var(--surface-soft);
+}
+
+.ui-row-link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.ui-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.ui-row-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-row-company {
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ui-row-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.ui-row-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ui-row-progress-track {
+  display: inline-flex;
+  gap: 2px;
+  width: 96px;
+  height: 8px;
+}
+
+.ui-row-progress-seg {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: var(--radius-xs);
+  background: var(--hairline-soft);
+}
+
+.ui-row-progress-seg--done {
+  background: var(--row-status);
+}
+
+.ui-row-progress-seg--current {
+  background: var(--row-status);
+  opacity: 0.55;
+}
+
+.ui-row-progress-count,
+.ui-row-due {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ui-row-due--overdue {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
+.ui-row-progress-empty {
+  font-size: 13px;
+  color: var(--muted-soft);
+}
+
+.ui-row-chevron {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* 行尾 ⋯ 菜单：拖拽之外的键盘可达替代路径 */
+.ui-row-actions {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.ui-row-move {
+  background: var(--canvas);
+  color: var(--ink);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ui-row-move:hover {
+  background: var(--surface-soft);
+}
+
+.ui-row-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1);
+  list-style: none;
+  min-width: 140px;
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  z-index: 3;
+}
+
+.ui-row-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.ui-row-menu-item:hover {
+  background: var(--surface-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-row-link {
+    transition: none;
+  }
+}

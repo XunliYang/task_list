@@ -19,6 +19,9 @@ const StatusManagerPage = lazy(() =>
 const ExamListPage = lazy(() =>
   import('../features/exam/ExamListPage').then((m) => ({ default: m.ExamListPage })),
 );
+const UiKitPage = lazy(() =>
+  import('../pages/UiKitPage').then((m) => ({ default: m.UiKitPage })),
+);
 
 function withSuspense(node: ReactNode) {
   return <Suspense fallback={<div>加载中…</div>}>{node}</Suspense>;
@@ -35,6 +38,10 @@ export const router = createBrowserRouter([
       { path: 'tasks/:id', element: withSuspense(<TaskDetailPage />) },
       { path: 'exams', element: withSuspense(<ExamListPage />) },
       { path: 'statuses', element: withSuspense(<StatusManagerPage />) },
+      // 仅 dev 注册的活规范页（生产构建被 import.meta.env.DEV 树摇掉）。
+      ...(import.meta.env.DEV
+        ? [{ path: 'ui-kit', element: withSuspense(<UiKitPage />) }]
+        : []),
     ],
   },
 ]);
