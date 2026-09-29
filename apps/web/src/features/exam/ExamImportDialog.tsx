@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { ExamsImportResult } from '@task-list/shared';
 import { useImportExams } from '../../api/exams';
+import { Button, SuccessMorphButton } from '../../ui';
 import { CSV_HEADER } from './exam-copy';
 import {
   csvTemplate,
@@ -39,17 +40,19 @@ export function ExamImportDialog({ open, onClose }: ExamImportDialogProps) {
     reader.readAsText(file);
   };
 
+  // 返回真实请求 Promise；空内容/请求失败抛错让 SuccessMorphButton 进入 error 态。
   const handleImport = async () => {
     setError('');
     if (content.trim() === '') {
       setError('请先粘贴或选择内容');
-      return;
+      throw new Error('请先粘贴或选择内容');
     }
     try {
       const res = await importMutation.mutateAsync({ format, content: content.trim() });
       setResult(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : '导入失败');
+      throw err;
     }
   };
 
@@ -70,60 +73,64 @@ export function ExamImportDialog({ open, onClose }: ExamImportDialogProps) {
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="导入考试/面试信息">
+    <div className="exam-dialog" role="dialog" aria-modal="true" aria-label="导入考试/面试信息">
       <h2>导入考试/面试信息</h2>
 
       {result ? (
         <div>
-          <p>
-            导入完成：成功 {result.imported} 条，跳过 {result.skipped} 条。
-          </p>
+          <p>导入完成：成功 {result.imported} 条，跳过 {result.skipped} 条。</p>
           {result.skipped > 0 ? (
-            <p role="alert">跳过了 {result.skipped} 条无法解析的行。</p>
+            <p className="exam-inline-error" role="alert">
+              跳过了 {result.skipped} 条无法解析的行。
+            </p>
           ) : null}
-          <button type="button" onClick={onClose}>
-            关闭
-          </button>
+          <div className="exam-dialog-actions">
+            <Button variant="secondary" onClick={onClose}>
+              关闭
+            </Button>
+          </div>
         </div>
       ) : (
         <>
-          <div role="tablist">
-            <button
-              type="button"
+          <div className="exam-import-tabs" role="tablist">
+            <Button
+              variant={format === 'csv' ? 'primary' : 'ghost'}
               role="tab"
               aria-selected={format === 'csv'}
               onClick={() => switchFormat('csv')}
             >
               CSV
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant={format === 'json' ? 'primary' : 'ghost'}
               role="tab"
               aria-selected={format === 'json'}
               onClick={() => switchFormat('json')}
             >
               JSON
-            </button>
+            </Button>
           </div>
 
-          <div style={{ margin: '8px 0' }}>
+          <div className="exam-import-file">
             <input
               ref={fileRef}
+              className="exam-field"
               type="file"
               accept={format === 'csv' ? '.csv,text/csv' : '.json,application/json'}
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
             {format === 'csv' ? (
-              <button type="button" onClick={downloadTemplate}>
+              <Button variant="ghost" onClick={downloadTemplate}>
                 下载模板
-              </button>
+              </Button>
             ) : null}
           </div>
 
           <textarea
+            className="exam-field"
             aria-label="导入内容"
             rows={8}
-            style={{ width: '100%' }}
+            autoFocus
             value={content}
             placeholder={
               format === 'csv'
@@ -133,35 +140,37 @@ export function ExamImportDialog({ open, onClose }: ExamImportDialogProps) {
             onChange={(e) => setContent(e.target.value)}
           />
 
-          {preview.error ? <p role="alert">{preview.error}</p> : null}
+          {preview.error ? (
+            <p className="exam-inline-error" role="alert">
+              {preview.error}
+            </p>
+          ) : null}
 
           {!preview.error && content.trim() !== '' && totalRows > 0 ? (
-            <div>
+            <div className="exam-import-preview">
               <p>
                 预览（前 10 条，共 {totalRows} 行）：预计导入 {preview.drafts.length} 条，跳过{' '}
                 {preview.skipped} 条。
               </p>
-              <table style={{ borderCollapse: 'collapse' }}>
+              <table className="exam-preview-table">
                 <thead>
                   <tr>
                     {CSV_HEADER.map((header) => (
-                      <th key={header} style={{ border: '1px solid #ddd', padding: '4px 8px' }}>
-                        {header}
-                      </th>
+                      <th key={header}>{header}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {preview.drafts.slice(0, 10).map((draft, index) => (
                     <tr key={index}>
-                      <td style={{ border: '1px solid #ddd', padding: '4px 8px' }}>{draft.title}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '4px 8px' }}>{draft.type}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '4px 8px' }}>{draft.company}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '4px 8px' }}>{draft.deadline}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '4px 8px' }}>{draft.url}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '4px 8px' }}>{draft.location}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '4px 8px' }}>{draft.status}</td>
-                      <td style={{ border: '1px solid #ddd', padding: '4px 8px' }}>{draft.notes}</td>
+                      <td>{draft.title}</td>
+                      <td>{draft.type}</td>
+                      <td>{draft.company}</td>
+                      <td>{draft.deadline}</td>
+                      <td>{draft.url}</td>
+                      <td>{draft.location}</td>
+                      <td>{draft.status}</td>
+                      <td>{draft.notes}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -169,15 +178,17 @@ export function ExamImportDialog({ open, onClose }: ExamImportDialogProps) {
             </div>
           ) : null}
 
-          {error ? <p role="alert">{error}</p> : null}
+          {error ? (
+            <p className="exam-inline-error" role="alert">
+              {error}
+            </p>
+          ) : null}
 
-          <div style={{ marginTop: 12 }}>
-            <button type="button" onClick={handleImport} disabled={importMutation.isPending}>
-              {importMutation.isPending ? '导入中…' : '确认导入'}
-            </button>{' '}
-            <button type="button" onClick={onClose}>
+          <div className="exam-dialog-actions">
+            <SuccessMorphButton onAction={handleImport}>确认导入</SuccessMorphButton>
+            <Button variant="secondary" onClick={onClose}>
               取消
-            </button>
+            </Button>
           </div>
         </>
       )}
