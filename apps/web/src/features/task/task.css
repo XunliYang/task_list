@@ -1,309 +1,388 @@
+/*
+ * 任务详情 / 编辑与共享任务组件样式（LEOY-124 Claude 暖色迁移）。
+ *
+ * 规则（与 theme.css 顶部一致）：
+ * 1. 只消费 var(--...) 设计令牌 + 结构尺寸（px/%）；
+ *    不新增颜色字面量（分类色 status.color 的动态颜色由内联 style 提供，保持不变）。
+ * 2. 数字与截止日一律 font-variant-numeric: tabular-nums。
+ * 3. 动效包在 @media (prefers-reduced-motion: reduce) 关闭分支里。
+ * 4. 焦点可见由 base.css 的全局 :focus-visible 提供，不写 outline: none。
+ * 5. 一次性提交（推进/保存/记录进展/创建）用 ui/SuccessMorphButton，取消/切换用 ui/Button。
+ *
+ * 本文件被 TaskDetailPage.tsx 与 TaskCreateDialog.tsx 两处 import；
+ * 看板（/board）复用 TaskCreateDialog，弹层与阶段草稿样式为两个入口共享。
+ */
+
+/* ------------------------------ 页面骨架 ------------------------------ */
 .task-detail {
   max-width: 760px;
   margin: 0 auto;
-  padding: 16px;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  padding: var(--space-4) var(--space-5) var(--space-6);
+  color: var(--ink);
 }
 
 .task-detail-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
 }
 
 .task-detail-header h1 {
   margin: 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink);
 }
 
-.actions button {
-  margin-left: 8px;
+.task-detail-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-.actions .danger {
-  color: #d32f2f;
+/* 删除为破坏性动作：红字 + 红描边（既有能力保留），使用 ui/Button ghost 基元承载。 */
+.task-detail-actions .danger {
+  color: var(--error-text);
 }
 
+.task-detail-actions .danger:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+/* ------------------------------ 元信息 dt/dd ------------------------------ */
 .task-meta {
   display: grid;
   grid-template-columns: 120px 1fr;
-  gap: 4px 12px;
-  margin: 16px 0;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  background: var(--surface-soft);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
 }
 
 .task-meta dt {
   font-weight: 600;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .task-meta dd {
   margin: 0;
+  color: var(--body);
 }
 
+/* 分类 pill：背景/文字色由内联 style（status.color + readableTextColor）注入。 */
 .status-pill {
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 13px;
+  font-weight: 600;
 }
 
+/* ------------------------------ 分节 ------------------------------ */
 .task-section {
-  margin: 24px 0;
+  margin: var(--space-5) 0;
 }
 
 .task-section h2 {
+  margin: 0 0 var(--space-3);
   font-size: 16px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 6px;
+  font-weight: 600;
+  color: var(--body-strong);
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: var(--space-2);
 }
 
+/* ------------------------------ 阶段流转 ------------------------------ */
 .stage-flow-stages {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   list-style: none;
   padding: 0;
-  gap: 8px;
-  flex-wrap: wrap;
+  margin: 0;
 }
 
 .stage-flow-stages li {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-pill);
+  background: var(--canvas);
+  color: var(--muted);
+  font-size: 13px;
 }
 
-.stage-flow-stages li.current {
-  border-color: #1976d2;
-  background: #e3f2fd;
-  font-weight: 600;
+.stage-flow-stages .node {
+  min-width: 1ch;
+  text-align: center;
+  line-height: 1;
+}
+
+/* 已完成：分类色（--stage-accent）着色，回退珊瑚。 */
+.stage-flow-stages li.done {
+  border-color: var(--stage-accent);
+  color: var(--body-strong);
 }
 
 .stage-flow-stages li.done .node {
-  color: #2e7d32;
-}
-
-.stage-flow-actions {
-  margin: 12px 0;
-  display: flex;
-  gap: 8px;
-}
-
-.stage-flow-actions .primary {
-  padding: 8px 14px;
+  color: var(--stage-accent);
   font-weight: 600;
 }
 
-.flow-notice {
-  color: #2e7d32;
+/* 当前：珊瑚描边 + 淡珊瑚底。 */
+.stage-flow-stages li.current {
+  border-color: var(--primary);
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-weight: 600;
 }
 
+.stage-flow-actions {
+  margin: var(--space-3) 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.flow-notice {
+  color: var(--success-text);
+  font-size: 14px;
+  margin: var(--space-2) 0;
+}
+
+.flow-notice--error {
+  color: var(--error-text);
+}
+
+/* ------------------------------ 进展输入 ------------------------------ */
 .progress-composer textarea {
   width: 100%;
   box-sizing: border-box;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  resize: vertical;
+  min-height: 72px;
+}
+
+.progress-composer textarea::placeholder {
+  color: var(--muted-soft);
 }
 
 .progress-composer label {
-  display: block;
-  margin: 6px 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  font-size: 13px;
+  color: var(--muted);
 }
 
+.progress-composer label input[type='checkbox'] {
+  accent-color: var(--primary);
+}
+
+/* ------------------------------ 进展时间线（行展示） ------------------------------ */
 .progress-timeline {
   list-style: none;
+  margin: 0;
   padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--canvas);
+  overflow: hidden;
 }
 
 .progress-timeline li {
-  border-left: 3px solid #1976d2;
-  padding: 8px 12px;
-  margin: 8px 0;
-  background: #fafafa;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.progress-timeline li:last-child {
+  border-bottom: none;
 }
 
 .progress-timeline time {
-  color: #888;
+  flex: none;
+  color: var(--muted);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding-top: 1px;
 }
 
-.stage-badge {
-  background: #e3f2fd;
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 12px;
-  margin-left: 8px;
+.progress-timeline .progress-summary {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--body);
 }
 
+.progress-timeline .stage-badge {
+  flex: none;
+}
+
+/* ------------------------------ 弹层（奶油面） ------------------------------ */
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  /* 半透明深色遮罩（复用 --border-strong 的 rgba(20,20,19,.55)，不新增字面量）。 */
+  background: var(--border-strong);
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 高于应用 chrome（页首 sticky 导航 z-index:100），确保弹窗遮罩盖满整个视口 */
+  padding: var(--space-4);
+  /* 高于应用 chrome（页首 sticky 导航 z-index:100），确保弹窗遮罩盖满整个视口。 */
   z-index: 1000;
 }
 
 .dialog {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
+  display: block;
+  width: 100%;
   min-width: 380px;
-  max-width: 92vw;
+  max-width: 640px;
   max-height: 90vh;
   overflow: auto;
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-5);
+  color: var(--ink);
+}
+
+.dialog h2 {
+  margin: 0 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .dialog label,
 .dialog .field {
   display: block;
-  margin: 10px 0;
+  margin: var(--space-3) 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dialog .field > span:first-child {
+  display: block;
+  margin-bottom: var(--space-1);
 }
 
 .dialog input[type='text'],
+.dialog input[type='date'],
 .dialog textarea,
 .dialog select {
   width: 100%;
   box-sizing: border-box;
+  margin-top: var(--space-1);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  min-height: 34px;
 }
 
-.field-error {
-  color: #d32f2f;
-  font-size: 13px;
+.dialog textarea {
+  resize: vertical;
+  min-height: 72px;
 }
 
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
+.dialog input::placeholder,
+.dialog textarea::placeholder {
+  color: var(--muted-soft);
 }
 
+/* 标签可编辑的输入不占整宽，与已添加的标签芯片同行排列。 */
 .tag-editor {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--space-2);
   align-items: center;
-}
-
-.tag-chip {
-  background: #eee;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 13px;
-}
-
-.stage-editor-list {
-  list-style: none;
-  padding: 0;
-}
-
-.stage-editor-list li {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 8px 0;
-  padding: 4px;
-}
-
-.stage-editor-list li.current {
-  background: #e3f2fd;
-}
-
-.stage-pill {
-  min-width: 20px;
-  text-align: center;
-}
-
-.stage-add-row {
-  display: flex;
-  gap: 8px;
-}
-
-.hint {
-  color: #888;
-  font-size: 13px;
-}
-
-.not-found {
-  max-width: 480px;
-  margin: 40px auto;
-  text-align: center;
-}
-
-.empty-hint {
-  color: #999;
-}
-
-/* ============================================================================
- * 快捷新建任务弹窗（LEOY-104）——复用 `.dialog-overlay` / `.dialog` 基础类，
- * 表单与卡片样式全部消费 stage 1 设计令牌，不新增颜色字面量。
- * ========================================================================== */
-
-.task-create-dialog {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-glow);
-  min-width: 420px;
-}
-
-.task-create-dialog h2 {
-  margin: 0 0 var(--space-2);
-  font-size: 17px;
-  color: var(--text-primary);
-}
-
-.task-create-dialog label,
-.task-create-dialog .field {
-  color: var(--text-secondary);
-}
-
-.task-create-dialog input[type='text'],
-.task-create-dialog input[type='date'],
-.task-create-dialog textarea,
-.task-create-dialog select {
-  width: 100%;
-  box-sizing: border-box;
   margin-top: var(--space-1);
-  padding: 8px 10px;
-  background: var(--bg-surface-2);
-  color: var(--text-primary);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  font: inherit;
 }
 
-.task-create-dialog input::placeholder,
-.task-create-dialog textarea::placeholder {
-  color: var(--text-muted);
-}
-
-/* 标签编辑器里的输入框不做整宽，与已添加的标签芯片同行排列 */
-.task-create-dialog .tag-editor input[type='text'] {
+.tag-editor input[type='text'] {
   width: auto;
   flex: 1;
   min-width: 120px;
   margin-top: 0;
 }
 
-.task-create-dialog .tag-chip {
-  background: var(--bg-surface-2);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
+/* ------------------------------ 字段错误 / 提示 ------------------------------ */
+.field-error {
+  color: var(--error-text);
+  font-size: 13px;
+  margin: var(--space-1) 0;
 }
 
-.task-create-dialog .tag-chip button {
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.empty-hint {
+  color: var(--muted);
+}
+
+/* ------------------------------ 标签芯片（编辑/创建弹窗共用） ------------------------------ */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  border: 1px solid var(--hairline);
+}
+
+.tag-chip button {
   padding: 0 var(--space-1);
   background: transparent;
   border: 0;
-  color: var(--text-muted);
+  color: var(--muted);
   cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
 }
 
-.task-create-dialog .field-error {
-  color: var(--danger);
+.tag-chip button:hover {
+  color: var(--error-text);
 }
 
-/* 阶段草稿列表（本地编辑，未持久化） */
+/* ------------------------------ 弹层操作区 ------------------------------ */
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+/* ------------------------------ 阶段草稿列表（新建弹窗） ------------------------------ */
 .stage-draft-list {
   list-style: none;
   padding: 0;
@@ -320,52 +399,133 @@
 .stage-draft-list .stage-pill {
   min-width: 20px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 
 .stage-draft-list input[type='text'] {
   flex: 1;
   min-width: 0;
+  margin-top: 0;
 }
 
 .stage-draft-list .due-date-picker input[type='date'] {
   width: auto;
 }
 
-.task-create-dialog .create-add-stage {
+.create-add-stage {
   margin-top: var(--space-1);
 }
 
-.task-create-dialog button {
-  font: inherit;
-  color: var(--text-primary);
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-strong);
+/* ------------------------------ 阶段编辑器弹窗 ------------------------------ */
+.stage-editor-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.stage-editor-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--hairline-soft);
   border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: background-color var(--duration-fast) ease;
 }
 
-.task-create-dialog button:hover:not(:disabled) {
+.stage-editor-list li:last-child {
+  border-bottom: none;
+}
+
+.stage-editor-list li.current {
   background: var(--accent-soft);
 }
 
-.task-create-dialog button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.stage-editor-list .stage-pill {
+  min-width: 20px;
+  text-align: center;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
-.task-create-dialog .dialog-actions button[type='submit'] {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
+.stage-editor-list input[type='text'] {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.stage-editor-list .overdue {
+  color: var(--error-text);
+  font-size: 12px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
+.stage-add-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.stage-add-row input {
+  flex: 1;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.dialog-close {
+  margin-top: var(--space-3);
+}
+
+/* ------------------------------ 截止时间选择 ------------------------------ */
+.due-date-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.due-date-picker input[type='date'] {
+  margin-top: 0;
+  width: auto;
+}
+
+.due-date-picker button {
+  padding: 0 var(--space-1);
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.due-date-picker button:hover {
+  color: var(--error-text);
+}
+
+/* ------------------------------ 空态 ------------------------------ */
+.not-found {
+  max-width: 480px;
+  margin: 40px auto;
+  text-align: center;
+  color: var(--body);
+}
+
+.not-found h1 {
+  font-family: var(--font-display);
+  color: var(--ink);
+}
+
+.not-found a {
+  color: var(--primary-text);
+}
+
+/* ------------------------------ 减少动效 ------------------------------ */
 @media (prefers-reduced-motion: reduce) {
-  .task-create-dialog button {
+  .dialog input,
+  .dialog textarea,
+  .dialog select {
     transition: none;
   }
 }

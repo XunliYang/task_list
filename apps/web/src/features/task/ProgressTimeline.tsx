@@ -1,4 +1,5 @@
 import type { ProgressEntry, Stage } from '@task-list/shared';
+import { Badge } from '../../ui';
 import { formatDateTime } from './task-utils';
 
 export interface ProgressTimelineProps {
@@ -6,7 +7,7 @@ export interface ProgressTimelineProps {
   stages: Stage[];
 }
 
-/** 进展时间线：按时间倒序展示，每条含时间、摘要与所属阶段。 */
+/** 进展时间线：按时间倒序，每条用行展示（时间 + 摘要 + 所属阶段）。 */
 export function ProgressTimeline({ entries, stages }: ProgressTimelineProps) {
   const sorted = [...entries].sort((a, b) => b.at.localeCompare(a.at));
 
@@ -24,8 +25,12 @@ export function ProgressTimeline({ entries, stages }: ProgressTimelineProps) {
         return (
           <li key={entry.id}>
             <time dateTime={entry.at}>{formatDateTime(entry.at)}</time>
-            <p>{entry.summary}</p>
-            {name && <span className="stage-badge">{name}</span>}
+            <p className="progress-summary">{entry.summary}</p>
+            {name && (
+              <span className="stage-badge">
+                <Badge variant="neutral">{name}</Badge>
+              </span>
+            )}
           </li>
         );
       })}

@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Task } from '@task-list/shared';
 import { useStatuses } from '../../api/statuses';
 import { useUpdateTask } from '../../api/tasks';
+import { Button, SuccessMorphButton } from '../../ui';
+import { useDialogModal } from './dialog-a11y';
 
 export interface TaskEditDialogProps {
   task: Task;
@@ -14,6 +16,8 @@ export interface TaskEditDialogProps {
 export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
   const updateTask = useUpdateTask(task.id);
   const statuses = useStatuses();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogModal(dialogRef, open, onClose);
 
   const [title, setTitle] = useState(task.title);
   const [company, setCompany] = useState(task.company ?? '');
@@ -22,6 +26,7 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
   const [statusId, setStatusId] = useState(task.statusId);
   const [notes, setNotes] = useState(task.notes);
   const [touched, setTouched] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -32,6 +37,7 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
       setStatusId(task.statusId);
       setNotes(task.notes);
       setTouched(false);
+      setSubmitError(null);
     }
   }, [open, task]);
 
@@ -46,20 +52,31 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
     setTagDraft('');
   }
 
-  function handleSubmit(e: FormEvent) {
+  /** 提交前拦截表单 submit（Enter 在输入框内触发），实际提交由 SuccessMorphButton 驱动。 */
+  function handleFormSubmit(e: FormEvent) {
     e.preventDefault();
+  }
+
+  // 返回真实请求 Promise；失败 rethrow → SuccessMorphButton error 态 + 行内错误可见。
+  async function submitEdit(): Promise<void> {
     setTouched(true);
-    if (titleInvalid) return;
-    updateTask.mutate(
-      {
+    if (titleInvalid) {
+      throw new Error('标题不能为空');
+    }
+    setSubmitError(null);
+    try {
+      await updateTask.mutateAsync({
         title: title.trim(),
         company: company.trim() === '' ? null : company.trim(),
         tags,
         statusId,
         notes,
-      },
-      { onSuccess: onClose },
-    );
+      });
+      onClose();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : '保存失败，请稍后重试');
+      throw err;
+    }
   }
 
   if (!open) return null;
@@ -68,8 +85,15 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
   const hasCurrent = statusOptions.some((s) => s.id === statusId);
 
   return (
-    <div className="dialog-overlay" role="dialog" aria-modal="true" aria-label="编辑任务">
-      <form className="dialog" onSubmit={handleSubmit} noValidate>
+    <div
+      ref={dialogRef}
+      className="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="编辑任务"
+      tabIndex={-1}
+    >
+      <form className="dialog" onSubmit={handleFormSubmit} noValidate>
         <h2>编辑任务</h2>
 
         <label>
@@ -130,13 +154,24 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)} aria-label="备注" />
         </label>
 
+        {submitError && (
+          <p className="field-error" role="alert">
+            {submitError}
+          </p>
+        )}
+
         <div className="dialog-actions">
-          <button type="button" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose}>
             取消
-          </button>
-          <button type="submit" disabled={!canSubmit}>
+          </Button>
+          <SuccessMorphButton
+            variant="primary"
+            successLabel="已保存"
+            onAction={submitEdit}
+            disabled={!canSubmit}
+          >
             保存
-          </button>
+          </SuccessMorphButton>
         </div>
       </form>
     </div>

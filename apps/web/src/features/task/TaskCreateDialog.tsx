@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Task } from '@task-list/shared';
 import { useStatuses } from '../../api/statuses';
 import { useCreateTask } from '../../api/tasks';
+import { Button, SuccessMorphButton } from '../../ui';
+import { useDialogModal } from './dialog-a11y';
 import { DueDatePicker } from './DueDatePicker';
 import { buildCreateTaskInput } from './task-create';
 import type { TaskCreateStageDraft } from './task-create';
@@ -23,7 +25,8 @@ const EMPTY_STAGES: TaskCreateStageDraft[] = [{ name: '准备', dueDate: null }]
  * 快捷新建任务弹窗：标题（必填）/ 公司 / 标签（回车追加、× 删除）/ 状态分类 /
  * 阶段（默认 1 个「准备」，可增删改名、可设截止时间）/ 备注。
  *
- * 提交走 `useCreateTask`，成功后 invalidate 并关闭弹窗；失败展示后端 message，不静默失败。
+ * 提交走 `useCreateTask.mutateAsync`，成功后 invalidate 并关闭弹窗；
+ * 失败 rethrow 让 SuccessMorphButton 进入 error 态，同时展示后端 message，不静默失败。
  */
 export function TaskCreateDialog({
   open,
@@ -33,6 +36,8 @@ export function TaskCreateDialog({
 }: TaskCreateDialogProps) {
   const statusesQuery = useStatuses();
   const createTask = useCreateTask();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogModal(dialogRef, open, onClose);
 
   const [title, setTitle] = useState('');
   const [company, setCompany] = useState('');
@@ -42,6 +47,7 @@ export function TaskCreateDialog({
   const [stages, setStages] = useState<TaskCreateStageDraft[]>(EMPTY_STAGES);
   const [notes, setNotes] = useState('');
   const [touched, setTouched] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const statusOptions = useMemo(
     () => [...(statusesQuery.data ?? [])].sort((a, b) => a.order - b.order),
@@ -58,6 +64,7 @@ export function TaskCreateDialog({
     setNotes('');
     setStages(EMPTY_STAGES);
     setTouched(false);
+    setSubmitError(null);
     setStatusId(initialStatusId ?? '');
   }, [open, initialStatusId]);
 
@@ -94,8 +101,13 @@ export function TaskCreateDialog({
     setTagDraft('');
   }
 
-  function handleSubmit(e: FormEvent) {
+  // 拦截 Enter 触发的隐式表单提交；实际提交由 SuccessMorphButton 驱动。
+  function handleFormSubmit(e: FormEvent) {
     e.preventDefault();
+  }
+
+  // 返回真实请求 Promise；失败 rethrow → SuccessMorphButton error 态 + 后端 message 可见。
+  async function submitCreate(): Promise<void> {
     setTouched(true);
     const input = buildCreateTaskInput({
       title,
@@ -105,26 +117,32 @@ export function TaskCreateDialog({
       stages,
       notes,
     });
-    if (!input) return;
-    createTask.mutate(input, {
-      onSuccess: (task) => {
-        onCreated?.(task);
-        onClose();
-      },
-    });
+    if (!input) {
+      throw new Error('表单校验未通过');
+    }
+    setSubmitError(null);
+    try {
+      const task = await createTask.mutateAsync(input);
+      onCreated?.(task);
+      onClose();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : '创建失败，请稍后重试。');
+      throw err;
+    }
   }
 
   if (!open) return null;
 
-  const submitError = createTask.isError
-    ? createTask.error instanceof Error
-      ? createTask.error.message
-      : '创建失败，请稍后重试。'
-    : '';
-
   return (
-    <div className="dialog-overlay" role="dialog" aria-modal="true" aria-label="新建任务">
-      <form className="dialog task-create-dialog" onSubmit={handleSubmit} noValidate>
+    <div
+      ref={dialogRef}
+      className="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="新建任务"
+      tabIndex={-1}
+    >
+      <form className="dialog" onSubmit={handleFormSubmit} noValidate>
         <h2>新建任务</h2>
 
         <label>
@@ -202,19 +220,20 @@ export function TaskCreateDialog({
                   onChange={(v) => updateStage(index, { dueDate: v })}
                   aria-label={`截止时间 ${index + 1}`}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => removeStage(index)}
                   aria-label={`删除阶段 ${index + 1}`}
                 >
                   删除
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
-          <button type="button" className="create-add-stage" onClick={addStage}>
+          <Button type="button" variant="secondary" className="create-add-stage" onClick={addStage}>
             ＋ 新增阶段
-          </button>
+          </Button>
           {stagesInvalid && <p className="field-error">至少保留一个阶段</p>}
         </div>
 
@@ -230,12 +249,17 @@ export function TaskCreateDialog({
         )}
 
         <div className="dialog-actions">
-          <button type="button" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose}>
             取消
-          </button>
-          <button type="submit" disabled={!canSubmit}>
-            {createTask.isPending ? '创建中…' : '创建'}
-          </button>
+          </Button>
+          <SuccessMorphButton
+            variant="primary"
+            successLabel="已创建"
+            onAction={submitCreate}
+            disabled={!canSubmit}
+          >
+            创建
+          </SuccessMorphButton>
         </div>
       </form>
     </div>
