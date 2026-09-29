@@ -70,7 +70,9 @@ export function TaskCreateDialog({
   }, [statusId, initialStatusId, statusOptions]);
 
   const titleInvalid = title.trim().length === 0;
-  const canSubmit = !titleInvalid && !createTask.isPending;
+  // 阶段规整后（过滤空名）至少需 1 个：删除/清空全部阶段后禁止提交，与后端 min(1) 对齐。
+  const stagesInvalid = stages.every((stage) => stage.name.trim().length === 0);
+  const canSubmit = !titleInvalid && !stagesInvalid && !createTask.isPending;
 
   function updateStage(index: number, patch: Partial<TaskCreateStageDraft>) {
     setStages((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
@@ -213,6 +215,7 @@ export function TaskCreateDialog({
           <button type="button" className="create-add-stage" onClick={addStage}>
             ＋ 新增阶段
           </button>
+          {stagesInvalid && <p className="field-error">至少保留一个阶段</p>}
         </div>
 
         <label>

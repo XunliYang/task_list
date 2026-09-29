@@ -123,6 +123,12 @@ describe('任务', () => {
     expect(res.body.code).toBe('validation_error');
   });
 
+  it('POST /api/tasks 空 stages → 400 validation_error', async () => {
+    const res = await request(app).post('/api/tasks').send(validTaskPayload({ stages: [] }));
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('validation_error');
+  });
+
   it('GET /api/tasks 列表与 GET /api/tasks/:id 详情', async () => {
     const task = await createTaskViaApi();
     const list = await request(app).get('/api/tasks');
@@ -258,8 +264,15 @@ describe('阶段增删改', () => {
   });
 
   it('0 阶段任务 POST stages 首个阶段后 currentStageId 非空', async () => {
-    const task = await createTaskViaApi({ stages: [] });
-    expect(task.currentStageId).toBeNull();
+    const task = await createTaskViaApi();
+    // 通过 DELETE 逐一删除全部阶段，构造 0 阶段任务（创建接口已禁止 stages: []）。
+    for (const stage of task.stages) {
+      const del = await request(app).delete(`/api/tasks/${task.id}/stages/${stage.id}`);
+      expect(del.status).toBe(200);
+    }
+    const emptied = await request(app).get(`/api/tasks/${task.id}`);
+    expect(emptied.body.stages).toHaveLength(0);
+    expect(emptied.body.currentStageId).toBeNull();
 
     const res = await request(app)
       .post(`/api/tasks/${task.id}/stages`)

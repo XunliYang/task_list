@@ -16,11 +16,21 @@ describe('DTO 必填文本字段拒绝纯空白（trim + min(1)）', () => {
   });
 
   it('createTaskInputSchema 拒绝纯空白 title', () => {
-    const base = { statusId: 'status-in-progress', stages: [] };
+    const base = { statusId: 'status-in-progress', stages: [{ name: '准备' }] };
     expect(() => createTaskInputSchema.parse({ ...base, title: '   ' })).toThrow();
     expect(createTaskInputSchema.parse({ ...base, title: '  投递 ACME  ' }).title).toBe(
       '投递 ACME',
     );
+  });
+
+  it('createTaskInputSchema 拒绝空 stages 数组', () => {
+    expect(() =>
+      createTaskInputSchema.parse({
+        statusId: 'status-in-progress',
+        title: '投递 ACME',
+        stages: [],
+      }),
+    ).toThrow();
   });
 
   it('createStageInputSchema 与 updateStageInputSchema 拒绝纯空白 name', () => {

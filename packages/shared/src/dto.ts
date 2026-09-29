@@ -45,7 +45,7 @@ export const createTaskInputSchema = z.object({
   tags: z.array(z.string()).default([]),
   notes: z.string().default(''),
   statusId: z.string().min(1),
-  stages: z.array(createStageInputSchema),
+  stages: z.array(createStageInputSchema).min(1),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskInputSchema>;
