@@ -12,6 +12,7 @@ import { FilterBar } from './FilterBar';
 import { StatusColumn } from './StatusColumn';
 import { filterTasks, useBoardFilters } from './useBoardFilters';
 import { TaskCreateDialog } from '../task/TaskCreateDialog';
+import { SuccessMorphButton } from '../../ui';
 import './board.css';
 
 export interface BoardPageProps {
@@ -195,16 +196,16 @@ export function BoardPage({ now }: BoardPageProps = {}) {
     <div className="board-page">
       <div className="board-title-row">
         <h1 className="board-title">{boardCopy.pageTitle}</h1>
-        <button
-          type="button"
-          className="board-add-primary"
-          onClick={() => {
+        <SuccessMorphButton
+          variant="primary"
+          successLabel="已打开"
+          onAction={() => {
             setCreateStatusId(null);
             setCreateOpen(true);
           }}
         >
           ＋ 新建任务
-        </button>
+        </SuccessMorphButton>
       </div>
 
       {moveError ? (
