@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react';
-import type { DragEvent } from 'react';
+import type { DragEvent, MouseEvent as ReactMouseEvent } from 'react';
 import type { StatusCategory, Task } from '@task-list/shared';
 import { boardCopy } from './board-copy';
 import { TASK_DRAG_TYPE } from './column-drop';
-import { TaskCard } from './TaskCard';
+import { TaskRow } from './TaskRow';
 
 interface StatusColumnProps {
   category: StatusCategory;
   tasks: Task[];
-  /** 全部状态分类（传给 TaskCard 供「移动到…」菜单使用） */
+  /** 全部状态分类（传给 TaskRow 供「移动到…」菜单使用） */
   categories: StatusCategory[];
   /** drop 到本列时回调：把 taskId 移到本列分类 id */
   onTaskDrop: (taskId: string, toStatusId: string) => void;
@@ -18,17 +18,19 @@ interface StatusColumnProps {
   onAddTask?: () => void;
 }
 
-/** 是否为内部任务卡拖拽（而非外部文件/文本拖入）。 */
+/** 是否为内部任务行拖拽（而非外部文件/文本拖入）。 */
 function hasTaskDrag(e: DragEvent): boolean {
   return Array.from(e.dataTransfer.types).includes(TASK_DRAG_TYPE);
 }
 
 /**
- * 看板单列：对应一个状态分类，列头显示色块、分类名与任务数；
- * 卡片按 updatedAt 倒序；列内为空时显示空态。
+ * 看板单列：对应一个状态分类，列头显示色块、分类名、任务数与「＋」；
+ * 列体是一列任务行（`ui/Row`，行与行之间 1px `--hairline`，无独立卡片）。
+ * 行按 updatedAt 倒序；列内为空时显示空态。
  *
  * 同时作为拖放目标（LEOY-103）：`onDragOver` preventDefault 才允许 drop，
  * `dragenter/dragleave` 计数维护高亮态，`aria-live` 提示当前放置目标。
+ * 列体 capture 阶段抑制「拖拽结束后紧随的 click」，避免误跳详情页。
  */
 export function StatusColumn({
   category,
@@ -42,6 +44,8 @@ export function StatusColumn({
 
   const dragDepthRef = useRef(0);
   const [isDragOver, setIsDragOver] = useState(false);
+  // 拖拽结束后浏览器/测试可能补发一次 click，抑制它避免误跳详情。
+  const suppressClickRef = useRef(false);
 
   const handleDragEnter = (e: DragEvent) => {
     if (!hasTaskDrag(e)) return;
@@ -73,6 +77,21 @@ export function StatusColumn({
     setIsDragOver(false);
     if (taskId) {
       onTaskDrop(taskId, category.id);
+    }
+  };
+
+  const handleRowDragEnd = () => {
+    suppressClickRef.current = true;
+    window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, 0);
+  };
+
+  const handleBodyClickCapture = (e: ReactMouseEvent<HTMLUListElement>) => {
+    if (suppressClickRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      suppressClickRef.current = false;
     }
   };
 
@@ -114,16 +133,19 @@ export function StatusColumn({
         {sorted.length === 0 ? (
           <p className="board-empty">{boardCopy.emptyColumn}</p>
         ) : (
-          sorted.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              category={category}
-              categories={categories}
-              onTaskDrop={onTaskDrop}
-              now={now}
-            />
-          ))
+          <ul className="board-column-list" onClickCapture={handleBodyClickCapture}>
+            {sorted.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                category={category}
+                categories={categories}
+                onTaskDrop={onTaskDrop}
+                now={now}
+                onDragEnd={handleRowDragEnd}
+              />
+            ))}
+          </ul>
         )}
       </div>
     </section>

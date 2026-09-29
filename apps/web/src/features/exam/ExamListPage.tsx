@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { ExamInfo } from '@task-list/shared';
 import { useExams } from '../../api/exams';
+import { Button } from '../../ui';
 import { ExamFilterBar } from './ExamFilterBar';
 import { ExamTable } from './ExamTable';
 import { ExamEditorDialog } from './ExamEditorDialog';
@@ -13,6 +14,7 @@ import {
   sortExams,
   type ExamFilters,
 } from './exam-filter';
+import './exam.css';
 
 export function ExamListPage() {
   const { data: exams = [] } = useExams();
@@ -51,27 +53,33 @@ export function ExamListPage() {
   };
 
   return (
-    <section>
-      <h1>考试信息</h1>
-
-      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-        <button type="button" onClick={openCreate}>
-          添加
-        </button>
-        <button type="button" onClick={() => setImportOpen(true)}>
-          导入
-        </button>
-        <label>
-          排序
-          <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}>
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.key} value={option.key}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+    <section className="exam-page">
+      <header className="exam-page-header">
+        <h1 className="exam-title">考试信息</h1>
+        <div className="exam-toolbar">
+          <Button variant="primary" onClick={openCreate}>
+            添加
+          </Button>
+          <Button variant="secondary" onClick={() => setImportOpen(true)}>
+            导入
+          </Button>
+          <label className="exam-sort">
+            排序
+            <select
+              className="exam-field"
+              aria-label="排序"
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value as SortKey)}
+            >
+              {SORT_OPTIONS.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </header>
 
       <ExamFilterBar value={filters} statusOptions={statusOptions} onChange={setFilters} />
 

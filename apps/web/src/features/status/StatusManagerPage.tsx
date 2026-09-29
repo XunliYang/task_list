@@ -11,7 +11,7 @@ import {
   useUpdateStatus,
 } from '../../api/statuses';
 import { useTasks } from '../../api/tasks';
-import { readableTextColor } from '../task/task-utils';
+import { Badge, Button, StatusDot, SuccessMorphButton } from '../../ui';
 import { buildReorderPlan, moveItem, moveItemTo, STATUS_DRAG_TYPE } from './status-order';
 import './status.css';
 
@@ -88,16 +88,18 @@ function StatusRow({
 }: StatusRowProps) {
   const [draftName, setDraftName] = useState(category.name);
   const [draftColor, setDraftColor] = useState(category.color);
-  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
 
   // 拖放目标高亮靠 dragenter/dragleave 深度计数，避免在子元素间移动时闪烁。
   const dragDepthRef = useRef(0);
   // 拖拽结束后抑制紧随的一次 click，避免误触发保存/删除等按钮。
   const suppressClickRef = useRef(false);
+  // 保存按钮（SuccessMorphButton）始终挂载，以便「已保存」形变在其内部走完 2s。
+  // pending 期间通过内部 state 禁用重复点击，这里额外引用用于「取消」按钮禁用。
+  const [saving, setSaving] = useState(false);
 
   const dirty = draftName.trim() !== category.name || draftColor !== category.color;
+  const canSave = dirty && draftName.trim().length > 0;
 
   // 服务端数据回填后同步草稿（仅在用户未进行未保存编辑时）。
   useEffect(() => {
@@ -107,11 +109,11 @@ function StatusRow({
     }
   }, [category.name, category.color, dirty]);
 
-  async function handleSave() {
+  async function handleSave(): Promise<void> {
     const trimmed = draftName.trim();
     if (trimmed.length === 0) {
       setSaveError('名称不能为空');
-      return;
+      throw new Error('名称不能为空');
     }
     const input: UpdateStatusInput = {};
     if (trimmed !== category.name) input.name = trimmed;
@@ -124,9 +126,10 @@ function StatusRow({
       await onSave(input);
       setDraftName(trimmed);
       setDraftColor(draftColor);
-      setSaved(true);
     } catch (err) {
       setSaveError(errorMessage(err, '保存失败，请稍后重试'));
+      // rethrow：让 SuccessMorphButton 进入 error 态（可见「失败」），同时行内提示保留。
+      throw err;
     } finally {
       setSaving(false);
     }
@@ -136,7 +139,6 @@ function StatusRow({
     setDraftName(category.name);
     setDraftColor(category.color);
     setSaveError(null);
-    setSaved(false);
   }
 
   function handleDragStart(e: DragEvent<HTMLLIElement>) {
@@ -193,7 +195,6 @@ function StatusRow({
     }
   }
 
-  const textColor = readableTextColor(category.color);
   const error = rowError ?? saveError;
 
   const rowClass = ['status-row'];
@@ -216,95 +217,72 @@ function StatusRow({
       data-dragging={isDragging || undefined}
       data-drop-target={isDropTarget || undefined}
     >
-      <span
-        className="status-swatch"
-        style={{ backgroundColor: category.color, color: textColor }}
-        title={category.name}
-      >
-        {category.name}
-      </span>
-      <input
-        className="status-name-input"
-        value={draftName}
-        aria-label={`重命名 ${index + 1}`}
-        onChange={(e) => {
-          setDraftName(e.target.value);
-          setSaveError(null);
-          setSaved(false);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            void handleSave();
-          } else if (e.key === 'Escape') {
-            handleCancel();
-          }
-        }}
-      />
-      <input
-        className="status-color-input"
-        type="color"
-        value={draftColor}
-        aria-label={`颜色 ${index + 1}`}
-        onChange={(e) => {
-          setDraftColor(e.target.value);
-          setSaveError(null);
-          setSaved(false);
-        }}
-      />
-      <span className="status-count">{count} 个任务</span>
-      <span className="status-order">
-        <span className="status-order-num">{category.order}</span>
-        <button
-          type="button"
+      <div className="status-row-main">
+        <StatusDot color={category.color} label={category.name} />
+        <input
+          className="status-name-input"
+          value={draftName}
+          aria-label={`重命名 ${index + 1}`}
+          onChange={(e) => {
+            setDraftName(e.target.value);
+            setSaveError(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              void handleSave().catch(() => {});
+            } else if (e.key === 'Escape') {
+              handleCancel();
+            }
+          }}
+        />
+        <input
+          className="status-color-input"
+          type="color"
+          value={draftColor}
+          aria-label={`颜色 ${index + 1}`}
+          onChange={(e) => setDraftColor(e.target.value)}
+        />
+        <Badge variant="neutral">
+          {count} 个任务
+        </Badge>
+      </div>
+      <div className="status-row-actions">
+        <Button
+          variant="ghost"
           className="status-move-btn"
           onClick={() => onMove(-1)}
           disabled={reorderDisabled || index === 0}
           aria-label={`上移 ${index + 1}`}
         >
           ↑
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="ghost"
           className="status-move-btn"
           onClick={() => onMove(1)}
           disabled={reorderDisabled || index === total - 1}
           aria-label={`下移 ${index + 1}`}
         >
           ↓
-        </button>
-      </span>
-      <span className="status-actions">
-        {dirty && (
-          <>
-            <button
-              type="button"
-              className="status-save-btn"
-              onClick={() => void handleSave()}
-              disabled={saving || draftName.trim().length === 0}
-            >
-              保存
-            </button>
-            <button
-              type="button"
-              className="status-cancel-btn"
-              onClick={handleCancel}
-              disabled={saving}
-            >
-              取消
-            </button>
-          </>
-        )}
-        {saved && !dirty && <span className="status-saved">已保存</span>}
-        <button
-          type="button"
-          className="status-delete-btn"
-          onClick={onDelete}
-          aria-label={`删除 ${index + 1}`}
+        </Button>
+        <SuccessMorphButton
+          variant="primary"
+          onAction={handleSave}
+          successLabel="已保存"
+          disabled={!canSave}
         >
+          保存
+        </SuccessMorphButton>
+        {dirty && (
+          <Button variant="ghost" onClick={handleCancel} disabled={saving}>
+            取消
+          </Button>
+        )}
+        <Button variant="ghost" className="status-delete-btn" onClick={onDelete} aria-label={`删除 ${index + 1}`}>
           删除
-        </button>
-      </span>
+        </Button>
+      </div>
       {error && (
         <span className="status-row-error" role="alert">
           {error}
@@ -314,7 +292,7 @@ function StatusRow({
   );
 }
 
-/** 状态分类管理页（/statuses）：表头列表 + 显式保存 + 原子调序（↑/↓ 与拖拽）+ 行内 409 提示。 */
+/** 状态分类管理页（/statuses）：行式列表 + 显式保存 + 原子调序（↑/↓ 与拖拽）+ 行内 409 提示。 */
 export function StatusManagerPage() {
   const queryClient = useQueryClient();
   const statusesQuery = useStatuses();
@@ -534,9 +512,9 @@ export function StatusManagerPage() {
           onChange={(e) => setColor(e.target.value)}
           aria-label="分类颜色"
         />
-        <button type="submit" disabled={name.trim().length === 0}>
+        <Button type="submit" variant="primary" disabled={name.trim().length === 0}>
           新增
-        </button>
+        </Button>
       </form>
 
       {error && (
@@ -545,46 +523,36 @@ export function StatusManagerPage() {
         </p>
       )}
 
-      <div className="status-table">
-        <div className="status-table-header">
-          <span>分类</span>
-          <span>名称</span>
-          <span>颜色</span>
-          <span>任务数</span>
-          <span>顺序</span>
-          <span>操作</span>
-        </div>
-        <ul
-          className={dropToEnd ? 'status-table-body is-drop-to-end' : 'status-table-body'}
-          data-testid="status-list"
-          onDragEnter={handleContainerDragEnter}
-          onDragOver={handleContainerDragOver}
-          onDragLeave={handleContainerDragLeave}
-          onDrop={handleContainerDrop}
-        >
-          {statuses.map((category, index) => (
-            <StatusRow
-              key={category.id}
-              category={category}
-              count={taskCounts.get(category.id) ?? 0}
-              index={index}
-              total={statuses.length}
-              reorderDisabled={reordering}
-              rowError={rowErrors[category.id] ?? null}
-              isDragging={dragSourceId === category.id}
-              isDropTarget={dropTargetId === category.id}
-              onMove={(offset) => void handleMove(category, offset)}
-              onDelete={() => handleDelete(category)}
-              onSave={(input) => handleSave(category, input)}
-              onRowDragStart={handleRowDragStart}
-              onRowDragEnd={handleRowDragEnd}
-              onRowDragEnter={handleRowDragEnter}
-              onRowDragLeave={handleRowDragLeave}
-              onRowDrop={handleRowDrop}
-            />
-          ))}
-        </ul>
-      </div>
+      <ul
+        className={dropToEnd ? 'status-list is-drop-to-end' : 'status-list'}
+        data-testid="status-list"
+        onDragEnter={handleContainerDragEnter}
+        onDragOver={handleContainerDragOver}
+        onDragLeave={handleContainerDragLeave}
+        onDrop={handleContainerDrop}
+      >
+        {statuses.map((category, index) => (
+          <StatusRow
+            key={category.id}
+            category={category}
+            count={taskCounts.get(category.id) ?? 0}
+            index={index}
+            total={statuses.length}
+            reorderDisabled={reordering}
+            rowError={rowErrors[category.id] ?? null}
+            isDragging={dragSourceId === category.id}
+            isDropTarget={dropTargetId === category.id}
+            onMove={(offset) => void handleMove(category, offset)}
+            onDelete={() => handleDelete(category)}
+            onSave={(input) => handleSave(category, input)}
+            onRowDragStart={handleRowDragStart}
+            onRowDragEnd={handleRowDragEnd}
+            onRowDragEnter={handleRowDragEnter}
+            onRowDragLeave={handleRowDragLeave}
+            onRowDrop={handleRowDrop}
+          />
+        ))}
+      </ul>
 
       <span className="status-visually-hidden" role="status" aria-live="polite">
         {liveMessage}

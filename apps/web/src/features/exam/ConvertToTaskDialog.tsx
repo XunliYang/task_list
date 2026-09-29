@@ -4,6 +4,7 @@ import type { ExamInfo, StatusCategory, Task } from '@task-list/shared';
 import { useConvertExamToTask } from '../../api/exams';
 import { useStatuses } from '../../api/statuses';
 import { ApiError } from '../../api/client';
+import { Button, SuccessMorphButton } from '../../ui';
 
 export interface ConvertToTaskDialogProps {
   exam: ExamInfo | null;
@@ -48,6 +49,7 @@ export function ConvertToTaskDialog({ exam, open, onClose, onConverted }: Conver
   const removeStage = (index: number) =>
     setStages((prev) => prev.filter((_, i) => i !== index));
 
+  // 返回真实请求 Promise：成功回链 taskId 并刷新列表；失败走 error 态且行内提示可见。
   const handleSubmit = async () => {
     setError('');
     const stageInputs = stages
@@ -67,76 +69,81 @@ export function ConvertToTaskDialog({ exam, open, onClose, onConverted }: Conver
       } else {
         setError(err instanceof Error ? err.message : '转任务失败');
       }
+      throw err;
     }
   };
 
-  if (convertedTask) {
-    return (
-      <div role="dialog" aria-modal="true" aria-label="转任务成功">
-        <h2>已转为任务</h2>
-        <p>新任务「{convertedTask.title}」已创建。</p>
-        <Link to={`/tasks/${convertedTask.id}`}>查看任务</Link>{' '}
-        <button type="button" onClick={onClose}>
-          关闭
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div role="dialog" aria-modal="true" aria-label="转为任务">
+    <div className="exam-dialog" role="dialog" aria-modal="true" aria-label="转为任务">
       <h2>转为任务</h2>
       <p>标题：{exam.title}</p>
       <p>公司：{exam.company ?? '—'}</p>
 
       <p>
-        <label>
+        <label className="exam-field-label" htmlFor="convert-status">
           目标状态分类
-          <select value={effectiveStatusId} onChange={(e) => setStatusId(e.target.value)}>
-            {statuses.map((status: StatusCategory) => (
-              <option key={status.id} value={status.id}>
-                {status.name}
-              </option>
-            ))}
-          </select>
         </label>
+        <select
+          id="convert-status"
+          className="exam-field"
+          autoFocus
+          value={effectiveStatusId}
+          onChange={(e) => setStatusId(e.target.value)}
+        >
+          {statuses.map((status: StatusCategory) => (
+            <option key={status.id} value={status.id}>
+              {status.name}
+            </option>
+          ))}
+        </select>
       </p>
 
-      <div>
-        <p>初始阶段</p>
+      <div className="exam-stages">
+        <p className="exam-field-label">初始阶段</p>
         {stages.map((stage, index) => (
-          <div key={index} style={{ marginBottom: 4 }}>
+          <div key={index} className="exam-stage-row">
             <input
+              className="exam-field"
               aria-label={`阶段 ${index + 1} 名称`}
               placeholder="阶段名称"
               value={stage.name}
               onChange={(e) => updateStage(index, { name: e.target.value })}
-            />{' '}
+            />
             <input
+              className="exam-field"
               aria-label={`阶段 ${index + 1} 截止时间`}
               type="date"
               value={stage.dueDate}
               onChange={(e) => updateStage(index, { dueDate: e.target.value })}
-            />{' '}
-            <button type="button" onClick={() => removeStage(index)}>
+            />
+            <Button variant="ghost" onClick={() => removeStage(index)}>
               删除
-            </button>
+            </Button>
           </div>
         ))}
-        <button type="button" onClick={addStage}>
+        <Button variant="secondary" onClick={addStage}>
           添加阶段
-        </button>
+        </Button>
       </div>
 
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? (
+        <p className="exam-inline-error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
-      <div style={{ marginTop: 12 }}>
-        <button type="button" onClick={handleSubmit} disabled={convertMutation.isPending}>
-          {convertMutation.isPending ? '提交中…' : '确认转任务'}
-        </button>{' '}
-        <button type="button" onClick={onClose}>
+      {convertedTask ? (
+        <div className="exam-dialog-success" role="status">
+          新任务「{convertedTask.title}」已创建。{' '}
+          <Link to={`/tasks/${convertedTask.id}`}>查看任务</Link>
+        </div>
+      ) : null}
+
+      <div className="exam-dialog-actions">
+        <SuccessMorphButton onAction={handleSubmit}>确认转任务</SuccessMorphButton>
+        <Button variant="secondary" onClick={onClose}>
           取消
-        </button>
+        </Button>
       </div>
     </div>
   );

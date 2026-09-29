@@ -1,6 +1,6 @@
-import type { CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
 import type { ExamInfo } from '@task-list/shared';
+import { Link } from 'react-router-dom';
+import { Badge, Button } from '../../ui';
 import { EXAM_TYPE_META } from './exam-copy';
 import { isOverdue } from './exam-filter';
 
@@ -11,89 +11,95 @@ export interface ExamTableProps {
   onConvert: (exam: ExamInfo) => void;
 }
 
-const cellStyle: CSSProperties = {
-  border: '1px solid #ddd',
-  padding: '6px 10px',
-  textAlign: 'left',
-  verticalAlign: 'top',
-};
+/** 类型 → Badge 语义变体（走令牌，不写死颜色）。 */
+function typeBadgeVariant(type: ExamInfo['type']): 'primary' | 'warning' {
+  return type === 'exam' ? 'primary' : 'warning';
+}
 
-const tagStyle = (color: string): CSSProperties => ({
-  display: 'inline-block',
-  padding: '2px 8px',
-  borderRadius: 4,
-  color: '#fff',
-  backgroundColor: color,
-  fontSize: 12,
-});
+/** 来源 → 中文标签。 */
+function sourceLabel(source: ExamInfo['source']): string {
+  return source === 'import' ? '导入' : '手动';
+}
 
-const overdueBadgeStyle: CSSProperties = {
-  display: 'inline-block',
-  marginLeft: 8,
-  padding: '1px 6px',
-  borderRadius: 4,
-  backgroundColor: '#d32f2f',
-  color: '#fff',
-  fontSize: 12,
-};
+interface ExamRowProps {
+  exam: ExamInfo;
+  onEdit: (exam: ExamInfo) => void;
+  onConvert: (exam: ExamInfo) => void;
+}
+
+function ExamRow({ exam, onEdit, onConvert }: ExamRowProps) {
+  const overdue = isOverdue(exam.deadline) && !exam.taskId;
+  const meta = EXAM_TYPE_META[exam.type];
+
+  return (
+    <li className="exam-row" data-testid={`exam-row-${exam.id}`}>
+      <div className="exam-grid">
+        <span className="exam-col-type">
+          <Badge variant={typeBadgeVariant(exam.type)}>{meta.label}</Badge>
+        </span>
+
+        <span className="exam-col-title">{exam.title}</span>
+
+        <span className="exam-col-company">{exam.company ?? '—'}</span>
+
+        <span className="exam-col-status">{exam.status || '—'}</span>
+
+        <span className="exam-col-deadline">
+          <span className={overdue ? 'exam-dl-date exam-dl-date--overdue' : 'exam-dl-date'}>
+            {exam.deadline ?? '—'}
+          </span>
+          {overdue ? <span className="exam-dl-overdue">逾期</span> : null}
+        </span>
+
+        <span className="exam-col-source">
+          <Badge variant="neutral">{sourceLabel(exam.source)}</Badge>
+        </span>
+
+        <span className="exam-col-actions">
+          {exam.taskId ? (
+            <>
+              <Badge variant="success">已转化</Badge>
+              <Link className="exam-view-link" to={`/tasks/${exam.taskId}`}>
+                查看任务
+              </Link>
+            </>
+          ) : (
+            <Button variant="ghost" onClick={() => onConvert(exam)}>
+              转任务
+            </Button>
+          )}
+          <Button variant="ghost" onClick={() => onEdit(exam)}>
+            编辑
+          </Button>
+        </span>
+      </div>
+    </li>
+  );
+}
 
 export function ExamTable({ exams, onEdit, onConvert }: ExamTableProps) {
   return (
-    <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-      <thead>
-        <tr>
-          <th style={cellStyle}>标题</th>
-          <th style={cellStyle}>类型</th>
-          <th style={cellStyle}>公司</th>
-          <th style={cellStyle}>截止时间</th>
-          <th style={cellStyle}>状态</th>
-          <th style={cellStyle}>已转任务</th>
-          <th style={cellStyle}>操作</th>
-        </tr>
-      </thead>
-      <tbody>
+    <div className="exam-table">
+      <div className="exam-table-header" aria-hidden="true">
+        <div className="exam-grid">
+          <span className="exam-col-type">类型</span>
+          <span className="exam-col-title">标题</span>
+          <span className="exam-col-company">公司</span>
+          <span className="exam-col-status">状态</span>
+          <span className="exam-col-deadline">截止</span>
+          <span className="exam-col-source">来源</span>
+          <span className="exam-col-actions">操作</span>
+        </div>
+      </div>
+      <ul className="exam-table-body">
         {exams.length === 0 ? (
-          <tr>
-            <td colSpan={7} style={cellStyle}>
-              暂无数据
-            </td>
-          </tr>
+          <li className="exam-row exam-row--empty">暂无数据</li>
         ) : (
-          exams.map((exam) => {
-            const overdue = isOverdue(exam.deadline) && !exam.taskId;
-            const meta = EXAM_TYPE_META[exam.type];
-            const rowStyle: CSSProperties = overdue
-              ? { backgroundColor: '#ffecec' }
-              : {};
-
-            return (
-              <tr key={exam.id} style={rowStyle} data-testid={`exam-row-${exam.id}`}>
-                <td style={cellStyle}>{exam.title}</td>
-                <td style={cellStyle}>
-                  <span style={tagStyle(meta.color)}>{meta.label}</span>
-                </td>
-                <td style={cellStyle}>{exam.company ?? '—'}</td>
-                <td style={cellStyle}>
-                  {exam.deadline ?? '—'}
-                  {overdue ? <span style={overdueBadgeStyle}>逾期</span> : null}
-                </td>
-                <td style={cellStyle}>{exam.status || '—'}</td>
-                <td style={cellStyle}>
-                  {exam.taskId ? <Link to={`/tasks/${exam.taskId}`}>查看任务</Link> : '—'}
-                </td>
-                <td style={cellStyle}>
-                  <button type="button" onClick={() => onEdit(exam)}>
-                    编辑
-                  </button>{' '}
-                  <button type="button" onClick={() => onConvert(exam)}>
-                    转任务
-                  </button>
-                </td>
-              </tr>
-            );
-          })
+          exams.map((exam) => (
+            <ExamRow key={exam.id} exam={exam} onEdit={onEdit} onConvert={onConvert} />
+          ))
         )}
-      </tbody>
-    </table>
+      </ul>
+    </div>
   );
 }

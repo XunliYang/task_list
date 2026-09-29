@@ -132,12 +132,40 @@ describe('StatusManagerPage', () => {
     await user.type(nameInput, '新名字');
 
     expect(updateAsyncMock).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: '保存' })).toBeInTheDocument();
+    const firstRow = screen.getAllByTestId('status-row')[0];
+    expect(within(firstRow).getByRole('button', { name: '保存' })).toBeEnabled();
 
-    await user.click(screen.getByRole('button', { name: '保存' }));
+    await user.click(within(firstRow).getByRole('button', { name: '保存' }));
     await waitFor(() =>
       expect(updateAsyncMock).toHaveBeenCalledWith({ id: 's1', input: { name: '新名字' } }),
     );
+  });
+
+  it('保存成功后按钮形变为「已保存」（success morph）', async () => {
+    renderPage();
+    const user = userEvent.setup();
+    const nameInput = screen.getByLabelText('重命名 1');
+    await user.clear(nameInput);
+    await user.type(nameInput, '新名字');
+    const firstRow = screen.getAllByTestId('status-row')[0];
+    await user.click(within(firstRow).getByRole('button', { name: '保存' }));
+
+    expect(await screen.findByText('已保存')).toBeInTheDocument();
+    expect(updateAsyncMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('保存失败时按钮走 error 态且行内提示可见（不静默）', async () => {
+    updateAsyncMock.mockRejectedValue(new ApiError(500, { code: 'internal', message: '服务器开小差' }));
+    renderPage();
+    const user = userEvent.setup();
+    const nameInput = screen.getByLabelText('重命名 1');
+    await user.clear(nameInput);
+    await user.type(nameInput, '新名字');
+    const firstRow = screen.getAllByTestId('status-row')[0];
+    await user.click(within(firstRow).getByRole('button', { name: '保存' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('服务器开小差');
+    expect(within(firstRow).getByRole('button', { name: '失败，重试' })).toBeInTheDocument();
   });
 
   it('Esc 取消改名回退到原值且不发请求', async () => {
@@ -150,7 +178,9 @@ describe('StatusManagerPage', () => {
 
     expect(updateAsyncMock).not.toHaveBeenCalled();
     expect(screen.getByLabelText('重命名 1')).toHaveValue('进行中');
-    expect(screen.queryByRole('button', { name: '保存' })).not.toBeInTheDocument();
+    // 未脏时保存按钮仍然挂载但禁用（LEOY-106 显式保存契约，不自动保存）。
+    const firstRow = screen.getAllByTestId('status-row')[0];
+    expect(within(firstRow).getByRole('button', { name: '保存' })).toBeDisabled();
   });
 
   it('连续点击 ↑ 时第二次点击被禁用（防连点断言）', async () => {
@@ -170,6 +200,17 @@ describe('StatusManagerPage', () => {
     resolveMove(undefined);
     await act(async () => {});
     expect(screen.getAllByRole('button', { name: /^上移/ })[1]).toBeEnabled();
+  });
+
+  it('显式调序断言：上移第 2 行只 PATCH 真正位移的项', async () => {
+    renderPage();
+    const user = userEvent.setup();
+    await user.click(screen.getAllByRole('button', { name: /^上移/ })[1]);
+
+    await waitFor(() => expect(updateAsyncMock).toHaveBeenCalledTimes(2));
+    expect(updateAsyncMock).toHaveBeenCalledWith({ id: 's2', input: { order: 0 } });
+    expect(updateAsyncMock).toHaveBeenCalledWith({ id: 's1', input: { order: 1 } });
+    expect(rowOrder()).toEqual(['s2', 's1', 's3']);
   });
 });
 

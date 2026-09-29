@@ -191,7 +191,7 @@ describe('BoardPage 拖拽改状态', () => {
     renderBoard();
 
     const title = screen.getByText('投递阿里');
-    const card = title.closest('[data-testid="task-card"]') as HTMLElement;
+    const card = title.closest('[data-testid="row"]') as HTMLElement;
     const link = within(card).getByRole('link', { name: '查看任务详情：投递阿里' });
 
     const dt = makeDataTransfer('t1');
@@ -206,7 +206,7 @@ describe('BoardPage 拖拽改状态', () => {
     renderBoard();
 
     const title = screen.getByText('投递阿里');
-    const card = title.closest('[data-testid="task-card"]') as HTMLElement;
+    const card = title.closest('[data-testid="row"]') as HTMLElement;
     const link = within(card).getByRole('link', { name: '查看任务详情：投递阿里' });
 
     fireEvent.click(link);

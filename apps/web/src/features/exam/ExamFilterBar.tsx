@@ -7,15 +7,21 @@ export interface ExamFilterBarProps {
   onChange: (next: ExamFilters) => void;
 }
 
+/** 该控件是否处于「已选中非默认值」的激活态（激活态用珊瑚描边/淡底）。 */
+function controlClass(active: boolean): string {
+  return active ? 'exam-field exam-filterbar-control--active' : 'exam-field';
+}
+
 export function ExamFilterBar({ value, statusOptions, onChange }: ExamFilterBarProps) {
   const set = <K extends keyof ExamFilters>(key: K, next: ExamFilters[K]) =>
     onChange({ ...value, [key]: next });
 
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, margin: '12px 0' }}>
+    <div className="exam-filterbar">
       <label>
         类型
         <select
+          className={controlClass(value.type !== 'all')}
           aria-label="类型"
           value={value.type}
           onChange={(e) => set('type', e.target.value as ExamFilters['type'])}
@@ -29,6 +35,7 @@ export function ExamFilterBar({ value, statusOptions, onChange }: ExamFilterBarP
       <label>
         关键词
         <input
+          className={controlClass(value.q.trim() !== '')}
           aria-label="关键词"
           type="text"
           placeholder="搜索标题/公司"
@@ -40,6 +47,7 @@ export function ExamFilterBar({ value, statusOptions, onChange }: ExamFilterBarP
       <label>
         状态
         <select
+          className={controlClass(value.status !== '')}
           aria-label="状态"
           value={value.status}
           onChange={(e) => set('status', e.target.value)}
@@ -56,6 +64,7 @@ export function ExamFilterBar({ value, statusOptions, onChange }: ExamFilterBarP
       <label>
         截止时间
         <select
+          className={controlClass(value.deadline !== 'all')}
           aria-label="截止时间"
           value={value.deadline}
           onChange={(e) => set('deadline', e.target.value as ExamFilters['deadline'])}
@@ -69,6 +78,7 @@ export function ExamFilterBar({ value, statusOptions, onChange }: ExamFilterBarP
       <label>
         是否已转任务
         <select
+          className={controlClass(value.converted !== 'all')}
           aria-label="是否已转任务"
           value={value.converted}
           onChange={(e) => set('converted', e.target.value as ExamFilters['converted'])}

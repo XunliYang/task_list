@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useStatuses } from '../api/statuses';
 import { useTasks } from '../api/tasks';
+import { StatusDot } from '../ui';
 import { buildOverview } from '../features/home/overview';
 import { SectionCard } from '../features/home/SectionCard';
 import '../features/home/home.css';
@@ -115,11 +116,7 @@ export function HomePage({ now }: HomePageProps = {}) {
               <ul className="home-status-list">
                 {overview.byStatus.map((group) => (
                   <li className="home-status-row" key={group.statusId}>
-                    <span
-                      className="home-status-swatch"
-                      style={{ backgroundColor: group.color }}
-                      aria-hidden="true"
-                    />
+                    <StatusDot color={group.color} label={group.name} />
                     <span className="home-status-name">{group.name}</span>
                     <span className="home-status-count">{group.count}</span>
                   </li>
