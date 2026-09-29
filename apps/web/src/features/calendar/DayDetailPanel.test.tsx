@@ -13,6 +13,7 @@ function stageDueEvent(partial: Partial<CalendarEvent>): CalendarEvent {
     taskTitle: '投递简历',
     statusId: 'status-in-progress',
     color: '#1976d2',
+    statusName: '进行中',
     stageId: 'st1',
     stageName: '笔试',
     stageDueDate: '2026-09-10',
@@ -24,31 +25,27 @@ function stageDueEvent(partial: Partial<CalendarEvent>): CalendarEvent {
   };
 }
 
+function renderPanel(events: CalendarEvent[], now = new Date('2026-09-10T00:00:00')) {
+  return render(
+    <MemoryRouter>
+      <DayDetailPanel dateKey="2026-09-10" events={events} onClose={vi.fn()} now={now} />
+    </MemoryRouter>,
+  );
+}
+
 describe('DayDetailPanel', () => {
   it('无事件时显示空态文案', () => {
-    render(
-      <MemoryRouter>
-        <DayDetailPanel dateKey="2026-09-10" events={[]} onClose={vi.fn()} />
-      </MemoryRouter>,
-    );
+    renderPanel([]);
     expect(screen.getByText('当日无到期项')).toBeInTheDocument();
   });
 
-  it('有事件时渲染任务链接与阶段/截止信息', () => {
-    render(
-      <MemoryRouter>
-        <DayDetailPanel
-          dateKey="2026-09-10"
-          events={[stageDueEvent({})]}
-          onClose={vi.fn()}
-        />
-      </MemoryRouter>,
-    );
+  it('有事件时用 ui/Row 渲染任务链接、阶段说明与截止', () => {
+    const { container } = renderPanel([stageDueEvent({})]);
 
-    const link = screen.getByRole('link', { name: '投递简历' });
+    const link = screen.getByRole('link', { name: '查看任务详情：投递简历' });
     expect(link).toHaveAttribute('href', '/tasks/t1');
     expect(screen.getByText('阶段：笔试')).toBeInTheDocument();
-    expect(screen.getByText('截止：2026-09-10')).toBeInTheDocument();
+    expect(container.querySelector('.ui-row-due')).toHaveTextContent('2026-09-10');
   });
 
   it('点击关闭按钮触发 onClose', () => {
@@ -63,16 +60,13 @@ describe('DayDetailPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('逾期事件显示「已逾期」标记', () => {
-    render(
-      <MemoryRouter>
-        <DayDetailPanel
-          dateKey="2026-09-10"
-          events={[stageDueEvent({ overdue: true })]}
-          onClose={vi.fn()}
-        />
-      </MemoryRouter>,
-    );
-    expect(screen.getByText('已逾期')).toBeInTheDocument();
+  it('逾期事件在截止列显示逾期后缀', () => {
+    renderPanel([stageDueEvent({ overdue: true })], new Date('2026-09-11T00:00:00'));
+    expect(screen.getByText(/2026-09-10 · 逾期/)).toBeInTheDocument();
+  });
+
+  it('阶段与当前阶段不同时在说明行补充当前阶段', () => {
+    renderPanel([stageDueEvent({ currentStageName: '一面', currentStageDueDate: '2026-09-20' })]);
+    expect(screen.getByText('阶段：笔试 · 当前阶段：一面')).toBeInTheDocument();
   });
 });
