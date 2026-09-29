@@ -213,6 +213,18 @@ describe('HomePage', () => {
     );
   });
 
+  it('按状态分类区块以 StatusDot 渲染分类色点（带可访问名称）', () => {
+    mocks.tasks = [makeTask({ id: 't1', statusId: 'status-a' })];
+    mocks.statuses = categories;
+
+    renderHome();
+
+    const dots = screen.getAllByRole('img');
+    expect(dots).toHaveLength(categories.length);
+    expect(dots[0]).toHaveAttribute('aria-label', '进行中');
+    expect(dots[1]).toHaveAttribute('aria-label', '已完成');
+  });
+
   it('无任务时渲染空态引导与新建入口', () => {
     mocks.tasks = [];
     mocks.statuses = categories;

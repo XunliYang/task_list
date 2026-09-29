@@ -1,4 +1,5 @@
-/* 首页概览样式（LEOY-105）—— 全部消费 stage 1 设计令牌，无颜色字面量。 */
+/* 首页概览样式（LEOY-121 Claude 暖色迁移）——
+   全部消费 LEOY-118 设计令牌，无颜色字面量；分类色走 status.color 内联。 */
 
 .home-page {
   display: flex;
@@ -12,16 +13,21 @@
   gap: var(--space-2);
 }
 
+/* 页面标题：衬线（--font-display），中文回落到 Songti SC / serif（可接受）。 */
 .home-title {
-  font-size: 22px;
   margin: 0;
-  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
 }
 
 .home-hint {
   margin: 0;
-  color: var(--text-secondary);
+  font-family: var(--font-sans);
   font-size: 14px;
+  color: var(--muted);
 }
 
 /* ------------------------------ 指标网格 ------------------------------ */
@@ -32,103 +38,134 @@
 }
 
 /* ------------------------------ 卡片外壳 ------------------------------ */
+/* 薄卡：--surface-card 底 + 1px --hairline + --radius-lg，无投影、无深色面。 */
 .section-card {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-4);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
   text-decoration: none;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
+  color: var(--ink);
 }
 
 .section-card--link {
   transition:
-    border-color var(--duration-fast) ease,
-    box-shadow var(--duration-fast) ease,
-    transform var(--duration-fast) ease;
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease;
 }
 
 .section-card--link:hover {
-  border-color: var(--accent);
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-1px);
+  background: var(--surface-strong);
+  border-color: var(--hairline);
 }
 
 .section-card--link:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
+/* 主 CTA（新建任务）：珊瑚面，文字随底色切换以保持对比度。 */
 .section-card--accent {
-  background: var(--accent-soft);
-  border-color: var(--accent);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--ink);
+}
+
+.section-card--accent:hover {
+  background: var(--primary-active);
+  border-color: var(--primary-active);
+  color: var(--on-primary);
 }
 
 .section-card__title {
   margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--body-strong);
+}
+
+/* 指标卡的标题是「标签」：字更小、走 --muted。 */
+.section-card--metric .section-card__title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: var(--muted);
 }
 
 .section-card__value {
   font-size: 30px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.1;
-  color: var(--text-primary);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .section-card__body {
+  font-family: var(--font-sans);
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--muted);
 }
 
-/* ------------------------------ 状态分类列表 ------------------------------ */
+/* 强调卡内文字：深色墨字落在珊瑚面上（≥4.5:1），悬停时随底色转白字。 */
+.section-card--accent .section-card__title,
+.section-card--accent .section-card__body {
+  color: var(--ink);
+}
+
+.section-card--accent:hover .section-card__title,
+.section-card--accent:hover .section-card__body {
+  color: var(--on-primary);
+}
+
+/* ------------------------------ 状态分类行式列表 ------------------------------ */
 .home-status-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
 }
 
+/* 每行：[● 色点] [分类名] [任务数右对齐]，行间 1px --hairline。 */
 .home-status-row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--hairline);
 }
 
-.home-status-swatch {
-  flex: none;
-  width: 10px;
-  height: 10px;
-  border-radius: var(--radius-sm);
+.home-status-row:first-child {
+  padding-top: 0;
+}
+
+.home-status-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .home-status-name {
   flex: 1;
+  font-family: var(--font-sans);
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--ink);
 }
 
 .home-status-count {
-  font-size: 13px;
-  color: var(--text-secondary);
-  background: var(--bg-surface-2);
-  border-radius: var(--radius-sm);
-  padding: 1px 8px;
+  font-size: 14px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .home-status-empty {
   margin: 0;
+  font-family: var(--font-sans);
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--muted);
 }
 
 /* ------------------------------ 快捷入口 ------------------------------ */
@@ -140,8 +177,9 @@
 
 .home-entry-hint {
   margin: 0;
+  font-family: var(--font-sans);
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--muted);
 }
 
 /* ------------------------------ 空态 ------------------------------ */
@@ -152,42 +190,53 @@
   gap: var(--space-2);
   text-align: center;
   padding: var(--space-6) var(--space-4);
-  background: var(--bg-surface);
+  background: var(--surface-card);
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-lg);
 }
 
 .home-empty-title {
   margin: 0;
-  font-size: 18px;
-  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .home-empty-hint {
   margin: 0;
+  font-family: var(--font-sans);
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--muted);
 }
 
+/* 空态里的新建入口：与 ui/Button primary 一致的珊瑚面外观（仍是 Link）。 */
 .home-empty-new {
   display: inline-flex;
   align-items: center;
   margin-top: var(--space-2);
-  padding: 8px 18px;
-  border: 1px solid var(--accent);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--primary);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none;
   transition:
-    background var(--duration-fast) ease,
-    box-shadow var(--duration-fast) ease;
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease;
 }
 
 .home-empty-new:hover {
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow-glow);
+  background: var(--primary-active);
+  color: var(--on-primary);
+}
+
+.home-empty-new:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 /* ------------------------------ 加载 / 错误态 ------------------------------ */
@@ -198,7 +247,8 @@
   gap: var(--space-3);
   padding: var(--space-6) var(--space-4);
   text-align: center;
-  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  color: var(--muted);
 }
 
 .home-state p {
@@ -206,18 +256,24 @@
 }
 
 .home-retry {
-  padding: 8px 18px;
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  background: var(--bg-surface);
-  color: var(--text-primary);
+  background: var(--surface-card);
+  color: var(--ink);
   cursor: pointer;
+  font-family: var(--font-sans);
   font-size: 14px;
-  transition: background var(--duration-fast) ease;
+  transition: background-color var(--duration-fast) ease;
 }
 
 .home-retry:hover {
-  background: var(--bg-elevated);
+  background: var(--surface-strong);
+}
+
+.home-retry:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 /* 动效只在用户未要求减少动态时启用 */
@@ -226,9 +282,5 @@
   .home-empty-new,
   .home-retry {
     transition: none;
-  }
-
-  .section-card--link:hover {
-    transform: none;
   }
 }
