@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { StatusCategory } from '@task-list/shared';
+import { Button } from '../../ui';
 import { boardCopy } from './board-copy';
 import type { BoardFilterState, DueRangeFilter, StageStatusFilter } from './useBoardFilters';
 
@@ -85,12 +86,12 @@ export function FilterBar(props: FilterBarProps) {
       <fieldset className="board-filter-group">
         <legend>{boardCopy.statusFilterLabel}</legend>
         <div className="board-filter-status-actions">
-          <button type="button" onClick={() => onSelectedStatusIdsChange(null)}>
+          <Button variant="ghost" type="button" onClick={() => onSelectedStatusIdsChange(null)}>
             {boardCopy.statusAll}
-          </button>
-          <button type="button" onClick={() => onSelectedStatusIdsChange([])}>
+          </Button>
+          <Button variant="ghost" type="button" onClick={() => onSelectedStatusIdsChange([])}>
             {boardCopy.statusNone}
-          </button>
+          </Button>
         </div>
         <div className="board-filter-status-list">
           {statuses.map((status) => (
@@ -155,14 +156,15 @@ export function FilterBar(props: FilterBarProps) {
         ))}
       </fieldset>
 
-      <button
+      <Button
+        variant="secondary"
         type="button"
         className="board-filter-clear"
         onClick={onReset}
         disabled={!hasActiveFilters}
       >
         {boardCopy.clearFilters}
-      </button>
+      </Button>
     </div>
   );
 }

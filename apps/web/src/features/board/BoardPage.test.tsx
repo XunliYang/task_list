@@ -84,7 +84,7 @@ describe('BoardPage', () => {
     renderBoard();
 
     expect(screen.getAllByTestId('status-column')).toHaveLength(2);
-    expect(screen.getAllByTestId('task-card')).toHaveLength(3);
+    expect(screen.getAllByTestId('row')).toHaveLength(3);
 
     // 列头显示分类名与任务数
     expect(screen.getByRole('heading', { name: '进行中' })).toBeInTheDocument();
