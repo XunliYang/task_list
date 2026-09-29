@@ -70,6 +70,7 @@ export function TaskRow({
       onDragStart={handleDragStart}
       onDragEnd={onDragEnd}
       now={now}
+      compact
     />
   );
 }

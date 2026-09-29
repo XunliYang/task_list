@@ -88,6 +88,53 @@ describe('Row', () => {
   });
 });
 
+describe('Row compact（看板窄列变体，LEOY-126）', () => {
+  it('紧凑态去掉装饰 chevron 与独立截止列，标题/公司/三段进度仍在，计数·截止并入一行', () => {
+    const stages = [
+      makeStage({ id: 's1', name: '笔试', status: 'done', dueDate: '2026-09-25' }),
+      makeStage({ id: 's2', name: '一面', status: 'in_progress', dueDate: '2026-10-01' }),
+      makeStage({ id: 's3', name: '二面', status: 'pending', dueDate: '2026-10-08' }),
+    ];
+    const { container } = renderRow({
+      company: 'Acme',
+      tags: ['前端', '远程'],
+      stages,
+      compact: true,
+      now: new Date('2026-09-29T00:00:00'),
+    });
+
+    const link = screen.getByRole('link', { name: `${rowCopy.detailLabel}：某公司前端岗` });
+    expect(link).toHaveClass('ui-row-link--compact');
+
+    // 标题与公司主体保留（可见）
+    expect(screen.getByText('某公司前端岗')).toBeInTheDocument();
+    expect(screen.getByText('Acme')).toBeInTheDocument();
+
+    // 装饰 chevron 与独立截止列在紧凑态移除（进度行已并入截止）
+    expect(container.querySelector('.ui-row-chevron')).not.toBeInTheDocument();
+    expect(container.querySelector('.ui-row-due')).not.toBeInTheDocument();
+
+    // 三段图形化进度保留
+    expect(screen.getAllByTestId('row-stage-segment')).toHaveLength(3);
+
+    // 计数与截止并入 meta 行
+    expect(screen.getByText('1/3 · 2026-10-01')).toBeInTheDocument();
+  });
+
+  it('紧凑态逾期截止在 meta 行带上逾期文案与语义类名', () => {
+    const stages = [makeStage({ id: 's1', name: '笔试', status: 'pending', dueDate: '2026-09-01' })];
+    const { container } = renderRow({
+      stages,
+      compact: true,
+      now: new Date('2026-09-29T00:00:00'),
+    });
+
+    const meta = screen.getByText('0/1 · 2026-09-01 · 逾期');
+    expect(meta).toHaveClass('ui-row-progress-meta--overdue');
+    expect(container.querySelector('.ui-row-progress-meta')).toBe(meta);
+  });
+});
+
 describe('rowDeadline（纯函数）', () => {
   const now = new Date('2026-09-29T00:00:00');
 

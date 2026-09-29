@@ -155,9 +155,9 @@
 }
 
 .board-column {
-  flex: 1 1 260px;
-  min-width: 260px;
-  max-width: 340px;
+  /* 固定 340px：紧凑行（状态点+标题保底88px+标签+三段进度+计数·截止）在此宽度内完整容纳，
+   * 窄视口下靠 .board-columns 的 overflow-x 横滚，列不再被 flex 压到 260px 导致标题挤没。 */
+  flex: 0 0 340px;
   background: var(--canvas);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);

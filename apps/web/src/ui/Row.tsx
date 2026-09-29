@@ -79,6 +79,12 @@ export interface RowProps {
   onDragEnd?: () => void;
   /** 固定时钟（测试 / 截图），缺省当前时间 */
   now?: Date;
+  /**
+   * 紧凑变体（看板窄列）：去掉装饰性 chevron、公司/标签并入副行、截止并入进度行，
+   * 标题列给保底宽度（minmax(80px,1fr)），保证窄列里标题/公司不被挤成 0 宽。
+   * 缺省 false，保持共享完整行的契约不变（LEOY-123/124 在宽容器使用）。
+   */
+  compact?: boolean;
 }
 
 /**
@@ -100,6 +106,7 @@ export function Row({
   onDragStart,
   onDragEnd,
   now,
+  compact = false,
 }: RowProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const effectiveNow = now ?? new Date();
@@ -110,6 +117,15 @@ export function Row({
   const due = rowDeadline(sorted, effectiveNow);
 
   const accentStyle = { '--row-status': statusColor } as CSSProperties;
+
+  const tagsEl =
+    tags && tags.length > 0 ? (
+      <span className="ui-row-tags">
+        {tags.map((tag) => (
+          <Badge key={tag}>{tag}</Badge>
+        ))}
+      </span>
+    ) : null;
 
   const handleMoveMenuKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Escape') setMenuOpen(false);
@@ -123,25 +139,36 @@ export function Row({
       onDragEnd={onDragEnd}
       data-testid="row"
     >
-      <Link to={href} className="ui-row-link" aria-label={`${rowCopy.detailLabel}：${title}`}>
+      <Link
+        to={href}
+        className={compact ? 'ui-row-link ui-row-link--compact' : 'ui-row-link'}
+        aria-label={`${rowCopy.detailLabel}：${title}`}
+      >
         <StatusDot
           color={statusColor}
           label={statusName}
           status={statusActive ? 'in_progress' : 'pending'}
         />
 
-        <div className="ui-row-main">
-          <span className="ui-row-title">{title}</span>
-          {company ? <span className="ui-row-company">{company}</span> : null}
-        </div>
-
-        {tags && tags.length > 0 ? (
-          <span className="ui-row-tags">
-            {tags.map((tag) => (
-              <Badge key={tag}>{tag}</Badge>
-            ))}
-          </span>
-        ) : null}
+        {compact ? (
+          <div className="ui-row-main">
+            <span className="ui-row-title">{title}</span>
+            {company || tagsEl ? (
+              <span className="ui-row-subline">
+                {company ? <span className="ui-row-company">{company}</span> : null}
+                {tagsEl}
+              </span>
+            ) : null}
+          </div>
+        ) : (
+          <>
+            <div className="ui-row-main">
+              <span className="ui-row-title">{title}</span>
+              {company ? <span className="ui-row-company">{company}</span> : null}
+            </div>
+            {tagsEl}
+          </>
+        )}
 
         <div className="ui-row-progress">
           {total > 0 ? (
@@ -170,27 +197,44 @@ export function Row({
           ) : (
             <span className="ui-row-progress-empty">—</span>
           )}
-          <span className="ui-row-progress-count">
-            {done}/{total}
-          </span>
+          {compact ? (
+            <span
+              className={
+                due.overdue
+                  ? 'ui-row-progress-meta ui-row-progress-meta--overdue'
+                  : 'ui-row-progress-meta'
+              }
+            >
+              {done}/{total}
+              {due.dueDate ? ` · ${due.dueDate}${due.overdue ? ` · ${rowCopy.overdueSuffix}` : ''}` : ''}
+            </span>
+          ) : (
+            <span className="ui-row-progress-count">
+              {done}/{total}
+            </span>
+          )}
         </div>
 
-        <span
-          className={due.overdue ? 'ui-row-due ui-row-due--overdue' : 'ui-row-due'}
-        >
-          {due.dueDate ? (
-            <>
-              {due.dueDate}
-              {due.overdue ? ` · ${rowCopy.overdueSuffix}` : ''}
-            </>
-          ) : (
-            '—'
-          )}
-        </span>
+        {compact ? null : (
+          <span
+            className={due.overdue ? 'ui-row-due ui-row-due--overdue' : 'ui-row-due'}
+          >
+            {due.dueDate ? (
+              <>
+                {due.dueDate}
+                {due.overdue ? ` · ${rowCopy.overdueSuffix}` : ''}
+              </>
+            ) : (
+              '—'
+            )}
+          </span>
+        )}
 
-        <span className="ui-row-chevron" aria-hidden="true">
-          →
-        </span>
+        {compact ? null : (
+          <span className="ui-row-chevron" aria-hidden="true">
+            →
+          </span>
+        )}
       </Link>
 
       {moveTargets && moveTargets.length > 0 ? (

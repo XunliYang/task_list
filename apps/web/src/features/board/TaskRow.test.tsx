@@ -81,7 +81,7 @@ describe('TaskRow（行式渲染）', () => {
     expect(screen.getByText('阿里')).toBeInTheDocument();
     expect(screen.getByText('前端')).toBeInTheDocument();
     expect(screen.getByText('远程')).toBeInTheDocument();
-    expect(screen.getByText('1/2')).toBeInTheDocument();
+    expect(screen.getByText('1/2 · 2026-10-01')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1');
 
     // 整行可点进入详情页（Link 到 /tasks/:id）
@@ -119,5 +119,33 @@ describe('TaskRow（行式渲染）', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: '已完成' }));
 
     expect(onTaskDrop).toHaveBeenCalledWith('t1', 'status-b');
+  });
+
+  it('看板行启用紧凑变体：标题/公司可读（紧凑类 + 三段进度保留 + 装饰 chevron 移除，LEOY-126）', () => {
+    const task = makeTask({
+      id: 't1',
+      title: '投递阿里',
+      company: '阿里',
+      tags: ['前端'],
+      statusId: 'status-a',
+      stages: [
+        makeStage({ id: 's1', name: '笔试', order: 0, status: 'done', dueDate: '2026-09-25' }),
+        makeStage({ id: 's2', name: '一面', order: 1, status: 'in_progress', dueDate: '2026-10-01' }),
+        makeStage({ id: 's3', name: '二面', order: 2, status: 'pending', dueDate: '2026-10-08' }),
+      ],
+    });
+    const { container } = renderRow(task);
+
+    // 行链接启用紧凑变体（标题列保底宽度由 .ui-row-link--compact 的 minmax(88px,1fr) 提供）
+    const link = screen.getByRole('link', { name: '查看任务详情：投递阿里' });
+    expect(link).toHaveClass('ui-row-link--compact');
+
+    // 标题与公司仍是可见主体（存在且不在独立截止列/装饰 chevron 中）
+    expect(screen.getByText('投递阿里')).toBeInTheDocument();
+    expect(screen.getByText('阿里')).toBeInTheDocument();
+    expect(container.querySelector('.ui-row-chevron')).not.toBeInTheDocument();
+
+    // 三段图形化进度保留（父需求验收能力）
+    expect(screen.getAllByTestId('row-stage-segment')).toHaveLength(3);
   });
 });
