@@ -86,6 +86,7 @@ export function ConvertToTaskDialog({ exam, open, onClose, onConverted }: Conver
         <select
           id="convert-status"
           className="exam-field"
+          autoFocus
           value={effectiveStatusId}
           onChange={(e) => setStatusId(e.target.value)}
         >

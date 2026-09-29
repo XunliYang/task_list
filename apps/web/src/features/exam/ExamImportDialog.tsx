@@ -130,6 +130,7 @@ export function ExamImportDialog({ open, onClose }: ExamImportDialogProps) {
             className="exam-field"
             aria-label="导入内容"
             rows={8}
+            autoFocus
             value={content}
             placeholder={
               format === 'csv'

@@ -140,6 +140,7 @@ export function ExamEditorDialog({ open, exam, onClose }: ExamEditorDialogProps)
         <input
           id="exam-title"
           className="exam-field"
+          autoFocus
           value={fields.title}
           onChange={(e) => set({ title: e.target.value })}
         />
