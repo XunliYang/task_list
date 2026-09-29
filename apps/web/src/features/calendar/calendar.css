@@ -153,6 +153,7 @@
 .day-cell__num {
   font-weight: 600;
   font-size: 14px;
+  color: #24292f;
 }
 
 .day-cell__overdue {
