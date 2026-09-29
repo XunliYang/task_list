@@ -1,0 +1,28 @@
+/* 状态点：圆点 + 进行中脉冲；颜色由内联 --dot-color 注入，无颜色字面量。 */
+.ui-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--dot-color);
+}
+
+.ui-dot--in_progress {
+  animation: ui-dot-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes ui-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-dot--in_progress {
+    animation: none;
+  }
+}

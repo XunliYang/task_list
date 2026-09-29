@@ -1,8 +1,8 @@
 /**
- * 全局基础层：reset + 页面骨架底色 + 科技感背景层。
+ * 全局基础层：reset + 页面骨架底色（暖奶油「编辑感」纸面）。
  *
- * 背景层用 body::before 固定伪元素实现（细网格 + 顶部径向光晕），
- * 纯 CSS、无图片；z-index 压在内容之下，不拦截任何交互。
+ * LEOY-118：移除科技感细网格 + 顶部径向光晕背景层（原 body::before 双层
+ * 渐变背景），保留 reset 与 :focus-visible。
  */
 
 *,
@@ -12,8 +12,8 @@
 }
 
 html {
-  color-scheme: dark;
-  background-color: var(--bg-base);
+  color-scheme: light;
+  background-color: var(--canvas);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -29,29 +29,12 @@ body {
   font-family: var(--font-sans);
   font-size: 15px;
   line-height: 1.6;
-  color: var(--text-primary);
-  background-color: transparent;
-}
-
-/* 科技感背景层：细网格 + 顶部径向光晕（固定覆盖，随内容滚动保持稳定） */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    radial-gradient(960px 520px at 50% -8%, rgba(59, 130, 246, 0.16), transparent 62%),
-    linear-gradient(var(--border-subtle) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    32px 32px,
-    32px 32px;
+  color: var(--ink);
+  background-color: var(--canvas);
 }
 
 /* 交互元素统一焦点可见（使用规则第 4 条：不写 outline: none） */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }

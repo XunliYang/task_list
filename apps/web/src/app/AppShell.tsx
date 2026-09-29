@@ -20,23 +20,26 @@ export function AppShell() {
   return (
     <div className="app-shell">
       <header className="app-shell-header">
-        <nav className="app-shell-nav">
-          {NAV_ITEMS.map((item) => {
-            const active = item.match(pathname);
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={
-                  active ? 'app-shell-nav-link app-shell-nav-link--active' : 'app-shell-nav-link'
-                }
-                aria-current={active ? 'page' : undefined}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="app-shell-bar">
+          <span className="app-shell-brand">任务进展</span>
+          <nav className="app-shell-nav" aria-label="主导航">
+            {NAV_ITEMS.map((item) => {
+              const active = item.match(pathname);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={
+                    active ? 'app-shell-nav-link app-shell-nav-link--active' : 'app-shell-nav-link'
+                  }
+                  aria-current={active ? 'page' : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       </header>
       <main className="app-shell-main app-shell-container">
         <Outlet />

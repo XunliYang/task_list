@@ -2,73 +2,123 @@
  * 设计令牌（design tokens）—— 全站唯一的视觉契约来源。
  * 下游 feature CSS 一律只消费 var(--...)，不得再各自定义颜色/圆角/阴影。
  *
- * ── 使用规则（下游照抄，stage 2 各 feature 迁移时遵守）──
+ * LEOY-118：由「深空蓝黑科技风」整体重映射为 Claude 暖色编辑风
+ * （暖奶油底 + 珊瑚强调 + 衬线标题 + 墨色正文）。令牌分层结构沿用 LEOY-102，
+ * 只「换值 + 扩充」；旧 role 名通过底部别名块继续可用，stage 7 迁完后删除别名。
+ *
+ * ── 使用规则（下游照抄）──
  * 1. feature CSS 只允许出现 var(--...)、结构尺寸（width/height/%/px 的布局值）
  *    与 transparent/currentColor；不允许新增颜色字面量
  *    （既有分类色 status.color 的动态内联样式除外，保持不变）。
  * 2. 数字与计数一律 font-variant-numeric: tabular-nums。
- * 3. 动效必须包在 @media (prefers-reduced-motion: reduce) 的关闭分支里
- *    （既有 board-breathe 呼吸动画同理）。
- * 4. 焦点可见：交互元素统一 :focus-visible 用 --accent 焦点环，不要 outline: none。
- * 5. 对比度：正文文本与背景对比度 ≥ 4.5:1；标签/次要文字 ≥ 3:1
- *    （深色底上的 --text-secondary / --text-muted 已按此选定）。
+ * 3. 动效必须包在 @media (prefers-reduced-motion: reduce) 的关闭分支里。
+ * 4. 焦点可见：交互元素统一 :focus-visible 用 --focus-ring，不写 outline: none。
+ * 5. 对比度：正文文本与背景 ≥ 4.5:1；次要文字 ≥ 3:1。
+ *    语义色「面值 / 文字值」分离：品牌原值只用于面（填充/色块/图表），
+ *    用作文字一律走 *-text 派生值（详见主题表下方对照）。
+ * 6. 一次性提交动作（保存/新建/推进/转任务/导入/删除确认）用 ui/SuccessMorphButton；
+ *    导航、筛选、视图切换类控件用 ui/Button，不得反用。
  *
  * ── 令牌速查表 ──
- *   底色与表面   --bg-base / --bg-surface / --bg-surface-2 / --bg-elevated
- *   描边与分隔   --border-subtle / --border-strong
- *   文本层级     --text-primary / --text-secondary / --text-muted
- *   强调与辉光   --accent / --accent-soft / --accent-glow
- *   语义色       --danger / --success / --warning
- *   圆角         --radius-sm / --radius-md / --radius-lg
- *   投影         --shadow-card / --shadow-glow
+ *   面与表面     --canvas / --surface-soft / --surface-card / --surface-strong
+ *   描边与分隔   --hairline / --hairline-soft / --border-strong
+ *   深色产品面   --surface-dark / --surface-dark-elev / --surface-dark-soft / --on-dark / --on-dark-soft
+ *   文本层级     --ink / --body / --body-strong / --muted / --muted-soft
+ *   强调（珊瑚） --primary / --primary-active / --primary-disabled / --on-primary
+ *                --primary-text / --primary-text-on-card
+ *   语义色       --success/--success-text / --warning/--warning-text / --error/--error-text
+ *   圆角         --radius-xs … --radius-xl / --radius-pill
+ *   投影         --shadow-card
  *   间距刻度     --space-1 … --space-6
- *   字体         --font-sans / --font-mono
- *   动效时长     --duration-fast / --duration-base
+ *   字体         --font-display / --font-sans / --font-mono
+ *   动效         --duration-fast / --duration-base / --ease-morph
+ *   兼容别名     --bg-* / --border-subtle / --text-* / --accent(-soft/-glow)
+ *                / --danger / --success-fg / --warning-fg / --shadow-glow
  */
 :root {
-  /* 底色与表面（深空蓝黑科技风） */
-  --bg-base: #0b1020; /* 页面底色 */
-  --bg-surface: #121a2e; /* 卡片 / 面板 */
-  --bg-surface-2: #182240; /* 次级面板 / 看板列 */
-  --bg-elevated: #1e2a4d; /* hover / 浮层 */
+  /* ── 品牌：暖奶油面 ── */
+  --canvas: #faf9f5; /* 页面底色（暖奶油，不用纯白） */
+  --surface-soft: #f5f0e8; /* 分节带 / 次级面 */
+  --surface-card: #efe9de; /* 内容卡 / 行容器 */
+  --surface-strong: #e8e0d2; /* 选中态 / 强调带 */
+  --hairline: #e6dfd8; /* 1px 描边（奶油面上的一级升起） */
+  --hairline-soft: #ebe6df; /* 同带内极弱分隔 */
 
-  /* 描边与分隔（必须用半透明，保证叠加可见） */
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
+  /* ── 深色产品面（代码窗 / 对照卡 / 页脚） ── */
+  --surface-dark: #181715;
+  --surface-dark-elev: #252320;
+  --surface-dark-soft: #1f1e1b;
+  --on-dark: #faf9f5;
+  --on-dark-soft: #a09d96;
 
-  /* 文本层级 */
-  --text-primary: #e8eefc;
-  --text-secondary: #9aa8c7;
-  --text-muted: #6b7a9c;
+  /* ── 文本层级 ── */
+  --ink: #141413;
+  --body: #3d3d3a;
+  --body-strong: #252523;
+  --muted: #6c6a64;
+  --muted-soft: #8e8b82;
 
-  /* 强调色（含辉光） */
-  --accent: #3b82f6;
-  --accent-soft: rgba(59, 130, 246, 0.16);
-  --accent-glow: 0 0 0 1px rgba(59, 130, 246, 0.35), 0 0 18px rgba(59, 130, 246, 0.25);
+  /* ── 强调：珊瑚 ── */
+  --primary: #cc785c;
+  --primary-active: #a9583e;
+  --primary-disabled: #e6dfd8;
+  --on-primary: #ffffff;
+  --primary-text: #a9583e; /* 珊瑚用作「文字/图标」时的达标值 */
+  --primary-text-on-card: #9d4f36; /* 在 --surface-card 上的达标值 */
 
-  /* 语义色（复用既有文案语义：逾期 / 完成） */
-  --danger: #f87171;
-  --success: #34d399;
-  --warning: #fbbf24;
+  /* ── 语义色：面值 与 文字值 分离 ── */
+  --success: #5db872;
+  --success-text: #2f7d43;
+  --warning: #d4a017;
+  --warning-text: #8a6410;
+  --error: #c64545;
+  --error-text: #a83232;
 
-  /* 形状 */
+  /* ── 交互边界与焦点（非文本 ≥ 3:1，WCAG 1.4.11） ── */
+  --border-strong: rgba(20, 20, 19, 0.55);
+  --focus-ring: #141413;
+
+  /* ── 字体 ── */
+  --font-display: 'Tiempos Headline', 'Cormorant Garamond', 'EB Garamond', Garamond,
+    'Songti SC', serif;
+  --font-sans: Inter, system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei',
+    sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ── 形状 / 间距 / 动效 ── */
+  --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.25);
-  --shadow-glow: 0 0 24px rgba(59, 130, 246, 0.18);
-
-  /* 间距刻度 */
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-
-  /* 字体与动效 */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --shadow-card: 0 1px 3px rgba(20, 20, 19, 0.08);
   --duration-fast: 120ms;
   --duration-base: 200ms;
+  --ease-morph: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 兼容别名块：LEOY-102 起的下游消费点继续可用，stage 7 迁完后再删（本 issue 不删） */
+:root {
+  --bg-base: var(--canvas);
+  --bg-surface: var(--surface-card);
+  --bg-surface-2: var(--surface-soft);
+  --bg-elevated: var(--surface-strong);
+  --border-subtle: var(--hairline);
+  --text-primary: var(--ink);
+  --text-secondary: var(--muted);
+  --text-muted: var(--muted-soft);
+  --accent: var(--primary);
+  --accent-soft: rgba(204, 120, 92, 0.14);
+  --accent-glow: 0 0 0 1px rgba(204, 120, 92, 0.35);
+  --danger: var(--error-text);
+  --success-fg: var(--success-text);
+  --warning-fg: var(--warning-text);
+  --shadow-glow: 0 1px 3px rgba(20, 20, 19, 0.08);
 }

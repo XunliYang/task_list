@@ -1,0 +1,84 @@
+/* /ui-kit 活规范页（仅 dev）：演示布局全部走设计令牌。 */
+.uikit-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+.uikit-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.uikit-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface-soft);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+}
+
+.uikit-h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--body-strong);
+}
+
+.uikit-demo-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.uikit-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.uikit-swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-2);
+}
+
+.uikit-swatch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.uikit-swatch-block {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline);
+}
+
+.uikit-swatch-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.uikit-row-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}

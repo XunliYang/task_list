@@ -1,9 +1,8 @@
-/* 页首导航壳层样式（LEOY-102 主题化：全部走设计令牌，无颜色字面量） */
+/* 页首导航壳层样式（LEOY-118 暖色编辑风：奶油底 + 珊瑚 pill + 衬线站名） */
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: transparent;
   font-family: var(--font-sans);
 }
 
@@ -11,19 +10,37 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
+  background: var(--canvas);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.app-shell-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+  min-height: 64px;
+}
+
+.app-shell-brand {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  white-space: nowrap;
 }
 
 .app-shell-nav {
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 var(--space-5);
-  height: 52px;
+  flex: 1;
+  min-height: 64px;
   /* 窄屏下入口超出视口时改为横向滚动，避免 flex nowrap 挤压导致词内折行 */
+  min-width: 0;
   overflow-x: auto;
   /* 移动端（<768px）隐藏滚动条，避免占用导航条高度 */
   scrollbar-width: none;
@@ -50,10 +67,10 @@
 .app-shell-nav-link {
   display: inline-flex;
   align-items: center;
-  padding: 6px 14px;
-  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--muted);
   text-decoration: none;
   /* 入口文字单行展示，窄屏下宁可横向滚动也不逐字折行 */
   white-space: nowrap;
@@ -64,24 +81,24 @@
 }
 
 .app-shell-nav-link:hover {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
+  background: var(--surface-soft);
+  color: var(--ink);
 }
 
 .app-shell-nav-link--active {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--primary);
+  color: var(--ink);
   font-weight: 600;
 }
 
 /* 悬停当前高亮入口时保持激活态配色，避免高亮被 hover 灰覆盖 */
 .app-shell-nav-link--active:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
+  background: var(--primary);
+  color: var(--ink);
 }
 
 .app-shell-nav-link:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -98,8 +115,12 @@
 }
 
 @media (max-width: 720px) {
-  .app-shell-nav {
+  .app-shell-bar {
     padding: 0 var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .app-shell-nav {
     scroll-padding-inline-end: var(--space-4);
   }
 

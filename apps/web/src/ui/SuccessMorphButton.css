@@ -1,0 +1,92 @@
+/* 成功形变按钮：动效只动 width/background-color/color/opacity/transform，
+   不改高度与外边距（固定高度 + 居中，形变不得让周围布局抖动）。 */
+.ui-morph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 96px;
+  height: 40px;
+  padding: 0 var(--space-4);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    width var(--duration-base) var(--ease-morph),
+    background-color var(--duration-base) var(--ease-morph),
+    color var(--duration-base) var(--ease-morph),
+    opacity var(--duration-base) var(--ease-morph),
+    transform var(--duration-base) var(--ease-morph);
+}
+
+.ui-morph:disabled {
+  cursor: not-allowed;
+}
+
+.ui-morph:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ── idle 变体底色（与 ui-button 一致） ── */
+.ui-morph--primary.ui-morph--idle {
+  background: var(--primary);
+  color: var(--ink);
+  border-color: var(--primary);
+}
+
+.ui-morph--secondary.ui-morph--idle {
+  background: var(--surface-card);
+  color: var(--ink);
+  border-color: var(--border-strong);
+}
+
+.ui-morph--ghost.ui-morph--idle {
+  background: transparent;
+  color: var(--body);
+  border-color: transparent;
+}
+
+/* ── pending：中性「进行中」观感 ── */
+.ui-morph--pending {
+  background: var(--surface-strong);
+  color: var(--muted);
+  opacity: 0.9;
+}
+
+/* ── success：绿面 + 墨字，附一次轻量 scale pop ── */
+.ui-morph--success {
+  background: var(--success);
+  color: var(--ink);
+  animation: ui-morph-pop var(--duration-base) var(--ease-morph);
+}
+
+/* ── error：红面 + 白字，停留在错误态直到重试 ── */
+.ui-morph--error {
+  background: var(--error);
+  color: var(--on-primary);
+}
+
+@keyframes ui-morph-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.96);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-morph {
+    transition: none;
+    animation: none;
+  }
+}
