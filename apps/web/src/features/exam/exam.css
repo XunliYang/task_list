@@ -1,0 +1,447 @@
+/*
+ * 考试/面试信息页（/exams）样式 —— 该页第一份 feature CSS。
+ * Claude 暖色编辑风：奶油面 + --hairline 分隔 + 墨色文字 + 珊瑚强调。
+ *
+ * 规则（与 theme.css 顶部一致）：
+ * 1. 只消费 var(--...) 设计令牌 + 结构尺寸（width/height/padding 等）；
+ *    不新增颜色字面量（分类/类型色由 Badge 变体走令牌）。
+ * 2. 数字与截止日一律 font-variant-numeric: tabular-nums。
+ * 3. 动效包在 @media (prefers-reduced-motion: reduce) 关闭分支里。
+ * 4. 焦点可见由 base.css 的全局 :focus-visible 提供，不写 outline: none。
+ * 5. 一次性提交（保存/导入/转任务）用 ui/SuccessMorphButton，取消/筛选/切换用 ui/Button。
+ */
+
+.exam-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── 页头：衬线标题 + 工具栏 ─────────────────────────── */
+
+.exam-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.exam-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+
+.exam-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.exam-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── 筛选栏：奶油面 + --hairline，选中态用珊瑚 ────────── */
+
+.exam-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+}
+
+.exam-filterbar label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* 筛选控件激活态（已选中非默认值）：珊瑚描边 + 淡珊瑚底。 */
+.exam-filterbar-control--active {
+  border-color: var(--primary);
+  background: var(--accent-soft);
+}
+
+/* ── 表单字段（筛选/排序/弹层共用） ─────────────────── */
+
+.exam-field,
+.exam-filterbar input,
+.exam-filterbar select,
+.exam-sort select,
+.exam-dialog input,
+.exam-dialog select,
+.exam-dialog textarea {
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  min-height: 32px;
+}
+
+.exam-field:hover,
+.exam-filterbar input:hover,
+.exam-filterbar select:hover,
+.exam-sort select:hover,
+.exam-dialog input:hover,
+.exam-dialog select:hover,
+.exam-dialog textarea:hover {
+  border-color: var(--focus-ring);
+}
+
+.exam-dialog textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+/* ── 表格：奶油容器 + 表头 + 行列表 ─────────────────── */
+
+.exam-table {
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.exam-grid {
+  display: grid;
+  grid-template-columns: 64px minmax(140px, 1fr) 128px 96px 128px 64px auto;
+  grid-template-areas: 'type title company status deadline source actions';
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.exam-table-header {
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.exam-table-header .exam-grid {
+  min-height: 40px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* 表头单元格与行单元格共用列类，需显式覆盖标题列的颜色/字重，让表头保持 muted 小字。 */
+.exam-table-header .exam-col-title {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 13px;
+}
+
+/* 表头标签在整个单元格内左对齐，与行内容对齐（单元格类同名，grid-area 一致）。 */
+.exam-col-type {
+  grid-area: type;
+  min-width: 0;
+}
+
+.exam-col-title {
+  grid-area: title;
+  min-width: 0;
+}
+
+.exam-col-company {
+  grid-area: company;
+  min-width: 0;
+}
+
+.exam-col-status {
+  grid-area: status;
+  min-width: 0;
+}
+
+.exam-col-deadline {
+  grid-area: deadline;
+  min-width: 0;
+}
+
+.exam-col-source {
+  grid-area: source;
+  min-width: 0;
+}
+
+.exam-col-actions {
+  grid-area: actions;
+  min-width: 0;
+}
+
+.exam-table-body {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.exam-row {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.exam-row:last-child {
+  border-bottom: none;
+}
+
+.exam-row .exam-grid {
+  padding: var(--space-3) var(--space-4);
+  min-height: 56px;
+}
+
+.exam-row--empty {
+  padding: var(--space-5) var(--space-4);
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── 行内容 ─────────────────────────────────────────── */
+
+.exam-col-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exam-col-company,
+.exam-col-status {
+  font-size: 13px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exam-col-deadline {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.exam-dl-date {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.exam-dl-date--overdue {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
+.exam-dl-overdue {
+  margin-left: var(--space-2);
+  color: var(--error-text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.exam-col-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.exam-view-link {
+  font-size: 14px;
+  color: var(--primary-text-on-card);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.exam-view-link:hover {
+  text-decoration: underline;
+}
+
+/* ── 弹层：奶油面卡片 ───────────────────────────────── */
+
+.exam-dialog {
+  display: block;
+  max-width: 640px;
+  margin: var(--space-4) 0;
+  padding: var(--space-5);
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.exam-dialog h2 {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.exam-dialog fieldset {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+}
+
+.exam-dialog legend {
+  padding: 0 var(--space-1);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.exam-dialog p {
+  margin: 0 0 var(--space-3);
+}
+
+.exam-dialog .exam-form-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.exam-field-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.exam-dialog-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.exam-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-right: var(--space-3);
+  font-size: 14px;
+  color: var(--body);
+}
+
+.exam-radio input[type='radio'] {
+  accent-color: var(--primary);
+}
+
+.exam-import-tabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.exam-import-file {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.exam-import-file input[type='file'] {
+  border: 0;
+  padding-left: 0;
+}
+
+.exam-import-preview {
+  margin: var(--space-3) 0;
+}
+
+.exam-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.exam-preview-table th,
+.exam-preview-table td {
+  border: 1px solid var(--hairline);
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.exam-preview-table th {
+  color: var(--muted);
+  background: var(--surface-soft);
+}
+
+.exam-stages {
+  margin-bottom: var(--space-3);
+}
+
+.exam-stage-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.exam-dialog-error,
+.exam-dialog-success,
+.exam-inline-error {
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+}
+
+.exam-dialog-error,
+.exam-inline-error {
+  color: var(--error-text);
+  border: 1px solid var(--error-text);
+  background: var(--canvas);
+}
+
+.exam-dialog-success {
+  color: var(--success-text);
+  border: 1px solid var(--success-text);
+  background: var(--canvas);
+}
+
+.exam-field-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── 响应式：窄屏收起次要列（来源/状态/公司），标题不压扁 ── */
+
+@media (max-width: 720px) {
+  .exam-grid {
+    grid-template-areas:
+      'type title actions'
+      '. deadline deadline';
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    row-gap: var(--space-2);
+  }
+
+  .exam-col-company,
+  .exam-col-status,
+  .exam-col-source {
+    display: none;
+  }
+}
+
+/* ── 减少动效：所有过渡退化为即时切换（SuccessMorph 由基元自带分支） ── */
+
+@media (prefers-reduced-motion: reduce) {
+  .exam-view-link {
+    transition: none;
+  }
+}
