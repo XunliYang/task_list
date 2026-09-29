@@ -20,6 +20,7 @@ export function SectionCard({ title, value, to, accent, children }: SectionCardP
     'section-card',
     to ? 'section-card--link' : '',
     accent ? 'section-card--accent' : '',
+    value !== undefined ? 'section-card--metric' : '',
   ]
     .filter(Boolean)
     .join(' ');
