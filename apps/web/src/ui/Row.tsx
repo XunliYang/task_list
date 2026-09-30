@@ -65,6 +65,8 @@ export interface RowProps {
   statusActive?: boolean;
   title: string;
   company?: string | null;
+  /** 可选次要说明行（日历侧用于展示「阶段 / 当前阶段 / 更新于」等上下文） */
+  subtitle?: string | null;
   tags?: readonly string[];
   /** 阶段（按 order 升序传入）；图形化进度 = done/total */
   stages?: readonly RowStage[];
@@ -97,6 +99,7 @@ export function Row({
   statusActive = false,
   title,
   company,
+  subtitle,
   tags,
   stages,
   href,
@@ -153,10 +156,11 @@ export function Row({
         {compact ? (
           <div className="ui-row-main">
             <span className="ui-row-title">{title}</span>
-            {company || tagsEl ? (
+            {company || tagsEl || subtitle ? (
               <span className="ui-row-subline">
                 {company ? <span className="ui-row-company">{company}</span> : null}
                 {tagsEl}
+                {subtitle ? <span className="ui-row-subtitle">{subtitle}</span> : null}
               </span>
             ) : null}
           </div>
@@ -165,6 +169,7 @@ export function Row({
             <div className="ui-row-main">
               <span className="ui-row-title">{title}</span>
               {company ? <span className="ui-row-company">{company}</span> : null}
+              {subtitle ? <span className="ui-row-subtitle">{subtitle}</span> : null}
             </div>
             {tagsEl}
           </>

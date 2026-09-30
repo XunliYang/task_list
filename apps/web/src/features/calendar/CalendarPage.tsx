@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Button } from '../../ui';
 import { useCalendarEvents } from './useCalendarEvents';
 import { MonthGrid } from './MonthGrid';
 import { WeekGrid } from './WeekGrid';
@@ -75,50 +76,46 @@ export function CalendarPage({ now }: CalendarPageProps = {}) {
     <div className="calendar-page">
       <header className="calendar-page__header">
         <div className="calendar-page__title-group">
-          <button
-            type="button"
-            className="calendar-page__nav"
+          <Button
+            variant="ghost"
             onClick={handlePrev}
             aria-label={view === 'month' ? CALENDAR_COPY.prev : CALENDAR_COPY.prevWeek}
           >
             《
-          </button>
+          </Button>
           <h1 className="calendar-page__title">{title}</h1>
-          <button
-            type="button"
-            className="calendar-page__nav"
+          <Button
+            variant="ghost"
             onClick={handleNext}
             aria-label={view === 'month' ? CALENDAR_COPY.next : CALENDAR_COPY.nextWeek}
           >
             》
-          </button>
+          </Button>
         </div>
 
         <div className="calendar-page__actions">
-          <button type="button" className="calendar-page__today" onClick={handleToday}>
+          <Button variant="secondary" onClick={handleToday}>
             {CALENDAR_COPY.today}
-          </button>
+          </Button>
           <div
             className="calendar-page__view-toggle"
             role="group"
             aria-label={CALENDAR_COPY.viewToggle}
           >
-            <button
-              type="button"
-              className={view === 'month' ? 'is-active' : ''}
+            <Button
+              variant={view === 'month' ? 'primary' : 'secondary'}
               aria-pressed={view === 'month'}
               onClick={() => setView('month')}
             >
               {CALENDAR_COPY.monthView}
-            </button>
-            <button
-              type="button"
-              className={view === 'week' ? 'is-active' : ''}
+            </Button>
+            <Button
+              variant={view === 'week' ? 'primary' : 'secondary'}
               aria-pressed={view === 'week'}
               onClick={() => setView('week')}
             >
               {CALENDAR_COPY.weekView}
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -133,6 +130,7 @@ export function CalendarPage({ now }: CalendarPageProps = {}) {
             dateKey={selectedDate}
             events={eventsByDate.get(selectedDate) ?? []}
             onClose={() => setSelectedDate(null)}
+            now={today}
           />
         )}
       </div>

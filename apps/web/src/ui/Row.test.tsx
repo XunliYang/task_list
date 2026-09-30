@@ -43,6 +43,23 @@ describe('Row', () => {
     expect(screen.getAllByTestId('row-stage-segment')).toHaveLength(2);
   });
 
+  it('subtitle 传入时渲染次要说明行，未传时不渲染', () => {
+    const { rerender } = renderRow({ subtitle: '阶段：笔试' });
+    expect(screen.getByText('阶段：笔试')).toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <Row
+          statusColor={STATUS_COLOR}
+          statusName="进行中"
+          title="某公司前端岗"
+          href="/tasks/t1"
+        />
+      </MemoryRouter>,
+    );
+    expect(screen.queryByText('阶段：笔试')).not.toBeInTheDocument();
+  });
+
   it('逾期截止列标注错误文案（--error-text 类名 + 逾期后缀）', () => {
     const stages = [
       makeStage({ id: 's1', name: '笔试', status: 'pending', dueDate: '2026-09-01' }),

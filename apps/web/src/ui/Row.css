@@ -97,6 +97,14 @@
   white-space: nowrap;
 }
 
+.ui-row-subtitle {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ui-row-tags {
   display: inline-flex;
   flex-wrap: wrap;

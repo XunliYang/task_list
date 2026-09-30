@@ -28,6 +28,8 @@ export interface CalendarEvent {
   statusId: string;
   /** 任务状态分类色 */
   color: string;
+  /** 任务状态分类名（供详情面板 ui/Row 的 StatusDot 无障碍标签） */
+  statusName: string;
   stageId: string | null;
   stageName: string | null;
   stageDueDate: string | null;
@@ -47,11 +49,16 @@ export interface ProjectCalendarOptions {
   now?: Date;
 }
 
-/** 状态分类缺失时的兜底色。 */
+/** 状态分类缺失时的兜底色 / 兜底名。 */
 const FALLBACK_COLOR = '#888888';
+const FALLBACK_NAME = '';
 
 function colorMapOf(statuses: StatusCategory[]): Map<string, string> {
   return new Map(statuses.map((s) => [s.id, s.color]));
+}
+
+function statusByNameMap(statuses: StatusCategory[]): Map<string, string> {
+  return new Map(statuses.map((s) => [s.id, s.name]));
 }
 
 export function buildCalendarEvents(
@@ -62,11 +69,13 @@ export function buildCalendarEvents(
   const { includeTaskUpdated = false, now = new Date() } = options;
   const todayKey = toDateKey(now);
   const colorByStatus = colorMapOf(statuses);
+  const nameByStatus = statusByNameMap(statuses);
 
   const events: CalendarEvent[] = [];
 
   for (const task of tasks) {
     const color = colorByStatus.get(task.statusId) ?? FALLBACK_COLOR;
+    const statusName = nameByStatus.get(task.statusId) ?? FALLBACK_NAME;
     const currentStage = task.stages.find((s) => s.id === task.currentStageId) ?? null;
 
     for (const stage of task.stages) {
@@ -80,6 +89,7 @@ export function buildCalendarEvents(
         taskTitle: task.title,
         statusId: task.statusId,
         color,
+        statusName,
         stageId: stage.id,
         stageName: stage.name,
         stageDueDate: stage.dueDate,
@@ -100,6 +110,7 @@ export function buildCalendarEvents(
         taskTitle: task.title,
         statusId: task.statusId,
         color,
+        statusName,
         stageId: null,
         stageName: null,
         stageDueDate: null,
