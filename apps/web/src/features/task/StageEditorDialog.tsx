@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Stage, Task } from '@task-list/shared';
 import { useAddStage, useDeleteStage, useReorderStages, useUpdateStage } from '../../api/tasks';
+import { Button } from '../../ui';
+import { useDialogModal } from './dialog-a11y';
 import { DueDatePicker } from './DueDatePicker';
 import { isStageOverdue, sortedStages } from './task-utils';
 
@@ -21,6 +23,8 @@ export function StageEditorDialog({ task, open, onClose }: StageEditorDialogProp
   const updateStage = useUpdateStage(task.id);
   const deleteStage = useDeleteStage(task.id);
   const reorderStages = useReorderStages(task.id);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogModal(dialogRef, open, onClose);
 
   const [nameDraft, setNameDraft] = useState('');
 
@@ -58,7 +62,14 @@ export function StageEditorDialog({ task, open, onClose }: StageEditorDialogProp
   if (!open) return null;
 
   return (
-    <div className="dialog-overlay" role="dialog" aria-modal="true" aria-label="编辑阶段">
+    <div
+      ref={dialogRef}
+      className="dialog-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label="编辑阶段"
+      tabIndex={-1}
+    >
       <div className="dialog">
         <h2>阶段与截止时间</h2>
 
@@ -84,34 +95,33 @@ export function StageEditorDialog({ task, open, onClose }: StageEditorDialogProp
                   onChange={(v) => updateStage.mutate({ stageId: stage.id, input: { dueDate: v } })}
                   aria-label={`截止时间 ${index + 1}`}
                 />
-                {overdue && (
-                  <span className="overdue" style={{ color: 'red' }}>
-                    逾期
-                  </span>
-                )}
-                <button
+                {overdue && <span className="overdue">逾期</span>}
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => handleMove(index, -1)}
                   disabled={index === 0}
                   aria-label={`上移阶段 ${index + 1}`}
                 >
                   ↑
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => handleMove(index, 1)}
                   disabled={index === stages.length - 1}
                   aria-label={`下移阶段 ${index + 1}`}
                 >
                   ↓
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => handleDelete(stage)}
                   aria-label={`删除阶段 ${index + 1}`}
                 >
                   删除
-                </button>
+                </Button>
               </li>
             );
           })}
@@ -130,15 +140,15 @@ export function StageEditorDialog({ task, open, onClose }: StageEditorDialogProp
               }
             }}
           />
-          <button type="button" onClick={handleAdd} disabled={addName.length === 0}>
+          <Button type="button" variant="primary" onClick={handleAdd} disabled={addName.length === 0}>
             新增阶段
-          </button>
+          </Button>
         </div>
 
         <p className="hint">删除当前阶段后系统会自动切换到下一个未完成阶段。</p>
-        <button type="button" className="dialog-close" onClick={onClose}>
+        <Button type="button" variant="secondary" className="dialog-close" onClick={onClose}>
           关闭
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -16,10 +16,8 @@ vi.mock('../../api/tasks', async (importOriginal) => {
   return {
     ...actual,
     useCreateTask: () => ({
-      mutate: mutateMock,
+      mutateAsync: mutateMock,
       isPending: false,
-      isError: false,
-      error: null,
     }),
   };
 });
@@ -68,21 +66,22 @@ describe('TaskCreateDialog', () => {
   });
 
   it('填标题后提交调用 useCreateTask 并关闭弹窗', async () => {
+    mutateMock.mockResolvedValue({ id: 't9', title: '投递 ACME' } as Task);
     const { onClose, onCreated } = renderDialog();
     const user = userEvent.setup();
     await user.type(screen.getByLabelText('标题'), '投递 ACME');
     await user.click(screen.getByRole('button', { name: '创建' }));
 
-    expect(mutateMock).toHaveBeenCalledTimes(1);
-    const [input, options] = mutateMock.mock.calls[0] as [Task, { onSuccess: (t: Task) => void }];
+    await waitFor(() => expect(mutateMock).toHaveBeenCalledTimes(1));
+    const [input] = mutateMock.mock.calls[0] as [Task];
     expect(input.title).toBe('投递 ACME');
     expect(input.statusId).toBe('status-a'); // 默认取第一个分类
     expect(input.stages).toEqual([{ name: '准备', dueDate: null }]); // 默认 1 个「准备」阶段
 
-    // 模拟后端成功 → 调用 onCreated 并关闭弹窗
-    options.onSuccess({ id: 't9', title: '投递 ACME' } as Task);
-    expect(onCreated).toHaveBeenCalled();
-    expect(onClose).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(onCreated).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+    });
   });
 
   it('删除唯一阶段后提交按钮禁用且提示「至少保留一个阶段」', async () => {
@@ -97,6 +96,18 @@ describe('TaskCreateDialog', () => {
     expect(screen.getByText('至少保留一个阶段')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '创建' }));
     expect(mutateMock).not.toHaveBeenCalled();
+  });
+
+  it('提交失败时按钮进入 error 态并展示后端 message', async () => {
+    mutateMock.mockRejectedValue(new Error('创建失败：服务器繁忙'));
+    renderDialog();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('标题'), '投递 ACME');
+    await user.click(screen.getByRole('button', { name: '创建' }));
+    await waitFor(() =>
+      expect(screen.getByText('创建失败：服务器繁忙')).toBeInTheDocument(),
+    );
+    expect(screen.getByRole('button', { name: '失败，重试' })).toBeInTheDocument();
   });
 });
 

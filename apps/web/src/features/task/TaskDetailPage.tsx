@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useStatuses } from '../../api/statuses';
 import { useDeleteTask, useTask, useTaskProgress } from '../../api/tasks';
+import { Button } from '../../ui';
 import { ProgressComposer } from './ProgressComposer';
 import { ProgressTimeline } from './ProgressTimeline';
 import { StageEditorDialog } from './StageEditorDialog';
@@ -49,13 +50,13 @@ export function TaskDetailPage() {
     <article className="task-detail">
       <header className="task-detail-header">
         <h1>{task.title}</h1>
-        <div className="actions">
-          <button type="button" onClick={() => setEditOpen(true)}>
+        <div className="task-detail-actions">
+          <Button type="button" variant="secondary" onClick={() => setEditOpen(true)}>
             编辑
-          </button>
-          <button type="button" className="danger" onClick={handleDelete}>
+          </Button>
+          <Button type="button" variant="ghost" className="danger" onClick={handleDelete}>
             删除
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -87,10 +88,10 @@ export function TaskDetailPage() {
 
       <section className="task-section">
         <h2>阶段流转</h2>
-        <StageFlowPanel task={task} />
-        <button type="button" onClick={() => setStagesOpen(true)}>
+        <StageFlowPanel task={task} statusColor={status?.color} />
+        <Button type="button" variant="secondary" onClick={() => setStagesOpen(true)}>
           编辑阶段与截止时间
-        </button>
+        </Button>
       </section>
 
       <section className="task-section">
