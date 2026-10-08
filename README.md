@@ -78,6 +78,30 @@ curl http://localhost:3000/api/health
 # => {"status":"ok"}
 ```
 
+## Netlify 静态部署（无后端降级）
+
+前端支持在**纯静态托管**（如 Netlify）下独立运行：当 `/api/*` 请求返回 404
+（没有 Express 后端）时，会自动降级到浏览器 `localStorage` 本地数据源，
+复用 `DataSnapshot` 结构与三条默认状态分类，写操作持久化到用户浏览器。
+显式强制本地模式可设置环境变量 `VITE_DATA_SOURCE=local`。
+
+| 配置项 | 值 |
+|---|---|
+| 构建命令 | `npm run build -w @task-list/web` |
+| 发布目录 | `apps/web/dist` |
+| 环境变量 | `VITE_DATA_SOURCE=local`（可选；留空则由前端自动检测 404 降级） |
+
+> 注意：自动降级依赖 `/api/*` 返回 404。若为 Netlify 配置了 SPA 回退重定向
+> （`/* → /index.html`），请把 `/api/*` 从该重定向中排除，否则 `/api/*` 会返回
+> 200 HTML 而非 404，此时需显式设置 `VITE_DATA_SOURCE=local`。
+
+本地验证静态产物：
+
+```bash
+npm run build -w @task-list/web
+npx serve apps/web/dist
+```
+
 ## 共享契约
 
 `packages/shared` 是全项目唯一契约来源，其它子任务一律从这里导入领域模型与 DTO 类型，不得各自另立一套：
