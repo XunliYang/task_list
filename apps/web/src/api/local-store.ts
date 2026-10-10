@@ -99,6 +99,21 @@ export function createSeedSnapshot(): DataSnapshot {
   };
 }
 
+/** 解析备份 JSON 文本为 DataSnapshot；非法 JSON 或结构不符时抛结构化 ApiError。 */
+export function parseBackupJson(json: string): DataSnapshot {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    httpError(400, 'invalid_backup', '备份文件不是合法 JSON');
+  }
+  const result = dataSnapshotSchema.safeParse(parsed);
+  if (!result.success) {
+    httpError(400, 'invalid_backup', '备份文件结构不符合要求', result.error.issues);
+  }
+  return result.data;
+}
+
 // ---------------------------------------------------------------------------
 // 任务查询（纯读）
 // ---------------------------------------------------------------------------
@@ -1006,6 +1021,17 @@ export class LocalStore {
     this.storage?.removeItem(this.key);
     this.storage?.removeItem(`${this.key}.tmp`);
     this.cache = null;
+  }
+
+  /** 导出当前快照为 JSON 文本（供下载备份）。 */
+  exportSnapshot(): string {
+    return JSON.stringify(this.load(), null, 2);
+  }
+
+  /** 覆盖当前快照（导入备份）：先落盘再更新内存缓存。 */
+  importSnapshot(snapshot: DataSnapshot): void {
+    this.persist(snapshot);
+    this.cache = snapshot;
   }
 
   /**

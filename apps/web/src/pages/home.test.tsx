@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { Stage, StatusCategory, Task } from '@task-list/shared';
 import { buildOverview } from '../features/home/overview';
 import { HomePage } from './HomePage';
@@ -138,15 +139,17 @@ const categories: StatusCategory[] = [
 
 const renderHome = (now = new Date(2026, 8, 28)) => {
   return render(
-    <MemoryRouter initialEntries={['/']}>
-      <Routes>
-        <Route path="/" element={<HomePage now={now} />} />
-        <Route path="/board" element={<div>board</div>} />
-        <Route path="/calendar" element={<div>calendar</div>} />
-        <Route path="/exams" element={<div>exams</div>} />
-        <Route path="/statuses" element={<div>statuses</div>} />
-      </Routes>
-    </MemoryRouter>,
+    <QueryClientProvider client={new QueryClient()}>
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<HomePage now={now} />} />
+          <Route path="/board" element={<div>board</div>} />
+          <Route path="/calendar" element={<div>calendar</div>} />
+          <Route path="/exams" element={<div>exams</div>} />
+          <Route path="/statuses" element={<div>statuses</div>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 };
 
