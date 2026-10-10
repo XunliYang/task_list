@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ExamInfo, StatusCategory, Task } from '@task-list/shared';
 import { ApiError } from './errors';
-import { LocalStore, createSeedSnapshot, STORAGE_KEY } from './local-store';
+import { LocalStore, createSeedSnapshot, STORAGE_KEY, parseBackupJson } from './local-store';
 
 /** 内存版 Storage，隔离于全局 localStorage。 */
 function memoryStorage() {
@@ -417,5 +417,58 @@ describe('LocalStore：持久化', () => {
     storage.setItem(STORAGE_KEY, '{ not-valid json');
     const store = new LocalStore(storage);
     expect(store.request<StatusCategory[]>('GET', '/statuses')).toHaveLength(3);
+  });
+});
+
+describe('LocalStore：备份导出/导入', () => {
+  it('exportSnapshot 输出完整 JSON；importSnapshot 覆盖现有数据', () => {
+    const store = newStore();
+    store.request<Task>('POST', '/tasks', createTaskBody());
+    store.request('POST', '/statuses', { name: '已挂', color: '#f57c00' });
+
+    const parsed = JSON.parse(store.exportSnapshot());
+    expect(parsed.version).toBe(1);
+    expect(parsed.tasks).toHaveLength(1);
+    expect(parsed.statusCategories).toHaveLength(4);
+
+    store.importSnapshot(createSeedSnapshot());
+    expect(store.request<Task[]>('GET', '/tasks')).toEqual([]);
+    expect(store.request<StatusCategory[]>('GET', '/statuses')).toHaveLength(3);
+  });
+
+  it('导出 → 新实例导入往返，数据经 storage 完整保留', () => {
+    const storage = memoryStorage();
+    const a = new LocalStore(storage);
+    a.request('POST', '/statuses', { name: '已挂', color: '#f57c00' });
+    const json = a.exportSnapshot();
+
+    const b = new LocalStore(storage);
+    b.importSnapshot(parseBackupJson(json));
+    expect(b.request<StatusCategory[]>('GET', '/statuses')).toHaveLength(4);
+  });
+
+  it('parseBackupJson：非法 JSON 抛 invalid_backup', () => {
+    let caught: ApiError | null = null;
+    try {
+      parseBackupJson('not json');
+    } catch (err) {
+      caught = err as ApiError;
+    }
+    expect(caught).toBeInstanceOf(ApiError);
+    expect(caught?.status).toBe(400);
+    expect(caught?.code).toBe('invalid_backup');
+  });
+
+  it('parseBackupJson：结构不符（缺字段）抛 invalid_backup', () => {
+    expect(() => parseBackupJson('{"version":1}')).toThrow(ApiError);
+  });
+
+  it('parseBackupJson：合法快照原样返回', () => {
+    const snap = parseBackupJson(JSON.stringify(createSeedSnapshot()));
+    expect(snap.statusCategories.map((s) => s.id)).toEqual([
+      'status-todo',
+      'status-in-progress',
+      'status-done',
+    ]);
   });
 });

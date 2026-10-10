@@ -4,6 +4,7 @@ import { useTasks } from '../api/tasks';
 import { StatusDot } from '../ui';
 import { buildOverview } from '../features/home/overview';
 import { SectionCard } from '../features/home/SectionCard';
+import { DataBackup } from '../features/backup/DataBackup';
 import '../features/home/home.css';
 
 export interface HomePageProps {
@@ -36,6 +37,7 @@ const homeCopy = {
   newTaskHint: '去看板快速创建',
   emptyTitle: '还没有任务',
   emptyHint: '创建一个任务，开始追踪你的求职进展，从这里直达看板。',
+  backupTitle: '数据备份',
 } as const;
 
 const quickEntries = [
@@ -139,6 +141,10 @@ export function HomePage({ now }: HomePageProps = {}) {
           </SectionCard>
         ) : null}
       </section>
+
+      <SectionCard title={homeCopy.backupTitle}>
+        <DataBackup />
+      </SectionCard>
     </div>
   );
 }
