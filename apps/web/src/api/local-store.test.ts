@@ -196,6 +196,102 @@ describe('LocalStore：任务 CRUD 与查询', () => {
   });
 });
 
+describe('LocalStore：JobApplication 持久化与向后兼容', () => {
+  const fullJob = {
+    announcementUrl: 'https://example.com/gonggao',
+    resumeUrl: 'https://example.com/resume.pdf',
+    applyUrl: 'https://example.com/apply',
+    position: '后端工程师',
+    requirements: '熟悉 Node.js',
+  };
+
+  it('创建含 jobApplication 的任务 → 刷新（resetCache）后字段仍在，且落盘 JSON 含该字段', () => {
+    const storage = memoryStorage();
+    const store = newStore(storage);
+    const created = store.request<Task>('POST', '/tasks', createTaskBody({ jobApplication: fullJob }));
+    expect(created.jobApplication).toEqual(fullJob);
+
+    // 模拟「刷新页面」：清内存缓存，强制从存储重新读盘。
+    store.resetCache();
+    const reloaded = store.request<Task[]>('GET', '/tasks');
+    expect(reloaded).toHaveLength(1);
+    expect(reloaded[0].jobApplication).toEqual(fullJob);
+
+    // localStorage 持久化证据：解析落盘 JSON 中的该任务片段。
+    const onDisk = JSON.parse(storage.dump()[STORAGE_KEY] as string) as {
+      tasks: Array<{ jobApplication: unknown }>;
+    };
+    expect(onDisk.tasks[0].jobApplication).toEqual(fullJob);
+  });
+
+  it('缺省创建 → jobApplication 为 null；显式传 null 同样为 null', () => {
+    const store = newStore();
+    const withNull = store.request<Task>('POST', '/tasks', createTaskBody({ jobApplication: null }));
+    expect(withNull.jobApplication).toBeNull();
+
+    const withDefault = store.request<Task>('POST', '/tasks', createTaskBody());
+    expect(withDefault.jobApplication).toBeNull();
+  });
+
+  it('PATCH 更新 jobApplication 并可用 null 清除', () => {
+    const storage = memoryStorage();
+    const store = newStore(storage);
+    const created = store.request<Task>('POST', '/tasks', createTaskBody({ jobApplication: fullJob }));
+
+    const updated = store.request<Task>('PATCH', `/tasks/${created.id}`, {
+      jobApplication: { ...fullJob, position: '前端工程师' },
+    });
+    expect(updated.jobApplication?.position).toBe('前端工程师');
+
+    // 传 null 清除 → 非求职任务。
+    const cleared = store.request<Task>('PATCH', `/tasks/${created.id}`, { jobApplication: null });
+    expect(cleared.jobApplication).toBeNull();
+  });
+
+  it('向后兼容：旧数据（无 jobApplication 键的任务）加载不报错且读为 null', () => {
+    // 模拟旧版本 localStorage：任务对象缺少 jobApplication 键。
+    const legacy = {
+      version: 1,
+      tasks: [
+        {
+          id: 'legacy-1',
+          title: '旧任务',
+          company: null,
+          statusId: 'status-todo',
+          tags: [],
+          stages: [
+            {
+              id: 'stage-1',
+              name: '笔试',
+              order: 0,
+              status: 'pending',
+              dueDate: null,
+              completedAt: null,
+            },
+          ],
+          currentStageId: 'stage-1',
+          notes: '',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+      statusCategories: [
+        { id: 'status-todo', name: '待开始', color: '#9e9e9e', order: 0 },
+      ],
+      progressEntries: [],
+      examInfos: [],
+    };
+
+    const storage = memoryStorage();
+    storage.setItem(STORAGE_KEY, JSON.stringify(legacy));
+    const store = newStore(storage);
+
+    const tasks = store.request<Task[]>('GET', '/tasks');
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].jobApplication).toBeNull();
+  });
+});
+
 describe('LocalStore：阶段流转与进展记录', () => {
   it('推进阶段：记录进展并进入下一阶段，末阶段 nextStage=null', () => {
     vi.useFakeTimers();

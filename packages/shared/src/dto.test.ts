@@ -6,6 +6,7 @@ import {
   createStatusInputSchema,
   createTaskInputSchema,
   updateStageInputSchema,
+  updateTaskInputSchema,
 } from './index';
 
 describe('DTO 必填文本字段拒绝纯空白（trim + min(1)）', () => {
@@ -51,5 +52,65 @@ describe('DTO 必填文本字段拒绝纯空白（trim + min(1)）', () => {
     expect(
       createExamInfoInputSchema.parse({ title: '  ACME 笔试 ', type: 'exam' }).title,
     ).toBe('ACME 笔试');
+  });
+});
+
+describe('createTaskInputSchema / updateTaskInputSchema 的 jobApplication', () => {
+  const base = { statusId: 'status-in-progress', stages: [{ name: '准备' }] };
+
+  it('createTaskInputSchema 接受完整 jobApplication 并保留字段', () => {
+    const parsed = createTaskInputSchema.parse({
+      ...base,
+      title: '投递 ACME',
+      jobApplication: {
+        announcementUrl: 'https://example.com/gonggao',
+        resumeUrl: 'https://example.com/resume.pdf',
+        applyUrl: 'https://example.com/apply',
+        position: '后端工程师',
+        requirements: '熟悉 Node.js',
+      },
+    });
+    expect(parsed.jobApplication).toEqual({
+      announcementUrl: 'https://example.com/gonggao',
+      resumeUrl: 'https://example.com/resume.pdf',
+      applyUrl: 'https://example.com/apply',
+      position: '后端工程师',
+      requirements: '熟悉 Node.js',
+    });
+  });
+
+  it('createTaskInputSchema 接受 jobApplication: null 与缺省', () => {
+    expect(createTaskInputSchema.parse({ ...base, title: 'A', jobApplication: null }).jobApplication).toBeNull();
+    expect(createTaskInputSchema.parse({ ...base, title: 'A' }).jobApplication).toBeUndefined();
+  });
+
+  it('createTaskInputSchema 拒绝非法 URL，并把空串归一为 null', () => {
+    const withJob = (jobApplication: Record<string, unknown>) => ({
+      ...base,
+      title: 'A',
+      jobApplication: {
+        announcementUrl: null,
+        resumeUrl: null,
+        applyUrl: null,
+        position: null,
+        requirements: null,
+        ...jobApplication,
+      },
+    });
+
+    expect(() =>
+      createTaskInputSchema.parse(withJob({ announcementUrl: 'notaurl' })),
+    ).toThrow();
+
+    const parsed = createTaskInputSchema.parse(
+      withJob({ announcementUrl: '', position: '  ' }),
+    );
+    expect(parsed.jobApplication?.announcementUrl).toBeNull();
+    expect(parsed.jobApplication?.position).toBeNull();
+  });
+
+  it('updateTaskInputSchema 接受 jobApplication: null（清除）', () => {
+    const parsed = updateTaskInputSchema.parse({ jobApplication: null });
+    expect(parsed.jobApplication).toBeNull();
   });
 });

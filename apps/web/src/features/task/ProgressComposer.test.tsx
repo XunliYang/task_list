@@ -22,6 +22,7 @@ const task: Task = {
   ],
   currentStageId: 'st1',
   notes: '',
+  jobApplication: null,
   createdAt: '',
   updatedAt: '',
 };

@@ -40,6 +40,7 @@ const task: Task = {
   stages: [],
   currentStageId: null,
   notes: '',
+  jobApplication: null,
   createdAt: '',
   updatedAt: '',
 };

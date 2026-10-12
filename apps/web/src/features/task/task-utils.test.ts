@@ -25,7 +25,7 @@ describe('isStageOverdue', () => {
 describe('getFlowAction', () => {
   it('无阶段时禁用', () => {
     const action = getFlowAction({
-      id: 't1', title: 'a', company: null, statusId: 's', tags: [], stages: [], currentStageId: null, notes: '', createdAt: '', updatedAt: '',
+      id: 't1', title: 'a', company: null, statusId: 's', tags: [], stages: [], currentStageId: null, notes: '', jobApplication: null, createdAt: '', updatedAt: '',
     });
     expect(action.disabled).toBe(true);
   });

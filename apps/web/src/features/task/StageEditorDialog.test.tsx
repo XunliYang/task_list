@@ -32,6 +32,7 @@ const task: Task = {
   stages: [s('a', '笔试', 0), s('b', '一面', 1), s('c', '二面', 2)],
   currentStageId: 'a',
   notes: '',
+  jobApplication: null,
   createdAt: '',
   updatedAt: '',
 };

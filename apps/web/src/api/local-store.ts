@@ -20,6 +20,7 @@ import type {
   DataSnapshot,
   ExamInfo,
   ExamsImportResult,
+  JobApplication,
   ProgressEntry,
   Stage,
   StageStatus,
@@ -200,6 +201,7 @@ function createTask(
     notes: string;
     statusId: string;
     stages: { name: string; dueDate?: string | null }[];
+    jobApplication?: JobApplication | null;
   },
 ): { snapshot: DataSnapshot; task: Task } {
   const timestamp = now();
@@ -223,6 +225,7 @@ function createTask(
     stages,
     currentStageId: stages.length > 0 ? stages[0].id : null,
     notes: input.notes,
+    jobApplication: input.jobApplication ?? null,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -236,7 +239,14 @@ function createTask(
 function updateTask(
   snapshot: DataSnapshot,
   taskId: string,
-  input: { title?: string; company?: string | null; statusId?: string; tags?: string[]; notes?: string },
+  input: {
+    title?: string;
+    company?: string | null;
+    statusId?: string;
+    tags?: string[];
+    notes?: string;
+    jobApplication?: JobApplication | null;
+  },
 ): { snapshot: DataSnapshot; task: Task } {
   const existing = getTask(snapshot, taskId);
 
@@ -251,6 +261,8 @@ function updateTask(
     statusId: input.statusId ?? existing.statusId,
     tags: input.tags ?? existing.tags,
     notes: input.notes !== undefined ? input.notes : existing.notes,
+    jobApplication:
+      input.jobApplication !== undefined ? input.jobApplication : existing.jobApplication,
     updatedAt: now(),
   };
 

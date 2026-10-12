@@ -191,6 +191,60 @@ describe('任务', () => {
   });
 });
 
+describe('任务 jobApplication（REST 契约）', () => {
+  const fullJob = {
+    announcementUrl: 'https://example.com/gonggao',
+    resumeUrl: 'https://example.com/resume.pdf',
+    applyUrl: 'https://example.com/apply',
+    position: '后端工程师',
+    requirements: '熟悉 Node.js',
+  };
+
+  it('POST 带完整 jobApplication → 201 回显；GET 返回含字段', async () => {
+    const res = await request(app)
+      .post('/api/tasks')
+      .send(validTaskPayload({ jobApplication: fullJob }));
+    expect(res.status).toBe(201);
+    expect(res.body.jobApplication).toEqual(fullJob);
+
+    const detail = await request(app).get(`/api/tasks/${res.body.id}`);
+    expect(detail.body.jobApplication).toEqual(fullJob);
+  });
+
+  it('POST 缺省 → jobApplication null；非法 URL → 400 validation_error', async () => {
+    const res = await request(app).post('/api/tasks').send(validTaskPayload());
+    expect(res.status).toBe(201);
+    expect(res.body.jobApplication).toBeNull();
+
+    const bad = await request(app)
+      .post('/api/tasks')
+      .send(
+        validTaskPayload({
+          jobApplication: {
+            announcementUrl: 'notaurl',
+            resumeUrl: null,
+            applyUrl: null,
+            position: null,
+            requirements: null,
+          },
+        }),
+      );
+    expect(bad.status).toBe(400);
+    expect(bad.body.code).toBe('validation_error');
+  });
+
+  it('PATCH 传 null 清除 jobApplication', async () => {
+    const created = await request(app)
+      .post('/api/tasks')
+      .send(validTaskPayload({ jobApplication: fullJob }));
+    const res = await request(app)
+      .patch(`/api/tasks/${created.body.id}`)
+      .send({ jobApplication: null });
+    expect(res.status).toBe(200);
+    expect(res.body.jobApplication).toBeNull();
+  });
+});
+
 describe('进展记录', () => {
   it('GET 空 → 200 []；POST → 201；GET → 倒序', async () => {
     const task = await createTaskViaApi();
