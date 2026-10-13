@@ -4,7 +4,7 @@ import { Button } from '../../ui';
 import { useCalendarEvents } from './useCalendarEvents';
 import { MonthGrid } from './MonthGrid';
 import { WeekGrid } from './WeekGrid';
-import { DayDetailPanel } from './DayDetailPanel';
+import { CalendarSidebar } from './CalendarSidebar';
 import { addDays, addMonths, formatWeekRange, toYearMonth } from './calendar-date';
 import { CALENDAR_COPY } from './calendar-copy';
 import './calendar.css';
@@ -33,7 +33,7 @@ export function CalendarPage({ now }: CalendarPageProps = {}) {
     return now ?? new Date();
   });
 
-  const { eventsByDate, isLoading, isError } = useCalendarEvents({ now: today });
+  const { events, eventsByDate, isLoading, isError } = useCalendarEvents({ now: today });
 
   const moveCursor = (next: Date) => {
     setCursor(next);
@@ -124,15 +124,16 @@ export function CalendarPage({ now }: CalendarPageProps = {}) {
       {isError && <p className="calendar-page__status">{CALENDAR_COPY.error}</p>}
 
       <div className="calendar-page__body">
-        <div className="calendar-page__grid">{grid}</div>
-        {selectedDate && (
-          <DayDetailPanel
-            dateKey={selectedDate}
-            events={eventsByDate.get(selectedDate) ?? []}
-            onClose={() => setSelectedDate(null)}
-            now={today}
-          />
-        )}
+        <main className="calendar-page__main">
+          <div className="calendar-page__grid">{grid}</div>
+        </main>
+        <CalendarSidebar
+          events={events}
+          eventsByDate={eventsByDate}
+          selectedDate={selectedDate}
+          onCloseDate={() => setSelectedDate(null)}
+          now={today}
+        />
       </div>
     </div>
   );

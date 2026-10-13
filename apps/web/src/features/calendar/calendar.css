@@ -50,17 +50,176 @@
   text-align: center;
 }
 
+/* 主区 + 侧栏：12 列网格。主区 span 8 独立滚动，侧栏 span 4 固定 320px sticky。 */
 .calendar-page__body {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--space-4);
-  align-items: flex-start;
   flex: 1;
   min-height: 0;
 }
 
+.calendar-page__main {
+  grid-column: span 8;
+  grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+  /* 主区自身成为滚动容器：侧栏（sibling）不随其滚动条移动。 */
+  overflow-y: auto;
+  /* 高度由 grid 行 minmax(0,1fr) 约束；再以视口兜底，避免依赖父链 height:100% 解析。
+   * 偏移 ≈ 导航 64 + 主容器上下 padding 2*24 + 页内上下 padding 2*16 + 页头/间距 ~80。 */
+  max-height: calc(100vh - 200px);
+}
+
 .calendar-page__grid {
+  min-width: 0;
+}
+
+/* ---------- 侧栏（日程 / 动态） ---------- */
+.calendar-sidebar {
+  grid-column: span 4;
+  grid-row: 1;
+  justify-self: start;
+  width: 320px;
+  max-width: 100%;
+  min-width: 0;
+  /* sticky 相对文档滚动：顶部让出导航（64px）+ 间距。 */
+  position: sticky;
+  top: calc(64px + var(--space-4));
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.calendar-sidebar__section {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  padding: var(--space-3);
+}
+
+.calendar-sidebar__heading {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 var(--space-2);
+  color: var(--ink);
+}
+
+.calendar-sidebar__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-sidebar__list li + li {
+  border-top: 1px solid var(--hairline-soft);
+}
+
+.calendar-sidebar__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-1);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+}
+
+.calendar-sidebar__item:hover {
+  background: var(--surface-soft);
+}
+
+.calendar-sidebar__item:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.calendar-sidebar__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: var(--radius-pill);
+}
+
+.calendar-sidebar__item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   flex: 1;
   min-width: 0;
+}
+
+/* 窄栏行标题保底可读（LEOY-128）：min-width:0 + 省略号，标题不会被挤成 0 宽。 */
+.calendar-sidebar__item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-sidebar__item-sub {
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.calendar-sidebar__item--overdue .calendar-sidebar__item-sub {
+  color: var(--error-text);
+  font-weight: 600;
+}
+
+.calendar-sidebar__empty {
+  margin: 0;
+  padding: var(--space-2) 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* 侧栏内嵌日详情面板（选中日期时「日程」聚焦该日）：去掉独立卡片外观，填满 320px 栏。 */
+.calendar-sidebar .day-detail {
+  width: 100%;
+  flex: none;
+  border: none;
+  background: none;
+  padding: 0;
+  max-height: none;
+  overflow: visible;
+}
+
+/* 窄视口回落（不得破坏 LEOY-97/128）：<1024px 侧栏降为主区下方流式区块（单列 grid）。 */
+@media (max-width: 1023px) {
+  .calendar-page__body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+
+  .calendar-page__main {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    overflow-y: visible;
+    max-height: none;
+  }
+
+  .calendar-sidebar {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    width: 100%;
+    justify-self: stretch;
+    position: static;
+    top: auto;
+  }
 }
 
 /* ---------- 网格通用 ---------- */
@@ -367,13 +526,8 @@
   display: none;
 }
 
-/* 窄视口回落：360px 面板在 <480px 视口会横向溢出（LEOY-97 回归锁），回落到 300px。 */
-@media (max-width: 480px) {
-  .day-detail {
-    width: 300px;
-    flex: 0 0 300px;
-  }
-}
+/* 窄视口回落：360px 面板已在 <480px 视口会横向溢出（LEOY-97 回归锁），
+ * 现由侧栏回落（<1024px 单列）接管，`.day-detail` 不再作为独立面板出现。 */
 
 /* 动效关闭：prefers-reduced-motion 下过渡归零（使用规则第 3 条）。 */
 @media (prefers-reduced-motion: reduce) {

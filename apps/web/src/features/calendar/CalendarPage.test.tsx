@@ -10,6 +10,9 @@ vi.mock('../../api/tasks', () => ({
 vi.mock('../../api/statuses', () => ({
   useStatuses: () => ({ data: [], isLoading: false, isError: false }),
 }));
+vi.mock('../../api/progress', () => ({
+  useRecentProgress: () => ({ data: [], isLoading: false, isError: false }),
+}));
 
 function renderPage(now = new Date(2026, 8, 8)) {
   return render(

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Stage, StatusCategory, Task } from '@task-list/shared';
 import {
   buildCalendarEvents,
+  buildScheduleEvents,
   groupEventsByDate,
   sortCalendarEvents,
 } from './useCalendarEvents';
@@ -177,5 +178,64 @@ describe('同日排序', () => {
     expect(grouped.has('2026-09-01')).toBe(true);
     expect(grouped.has('2026-09-05')).toBe(true);
     expect(grouped.has('2026-09-10')).toBe(true);
+  });
+});
+
+describe('buildScheduleEvents（侧栏「日程」选择，复用同一投影）', () => {
+  it('只取未完成 stage-due，已完成阶段不在日程中', () => {
+    const { tasks, statuses } = buildFixture();
+    const events = buildCalendarEvents(tasks, statuses, { now: NOW });
+    const schedule = buildScheduleEvents(events, { now: NOW, days: 7 });
+
+    expect(schedule.every((e) => e.kind === 'stage-due' && !e.done)).toBe(true);
+    // s3 已完成、s2 无 dueDate、s4 未来 —— 日程里只有 s1（逾期）与 s4（未来）。
+    expect(schedule.map((e) => e.stageId).sort()).toEqual(['s1', 's4']);
+  });
+
+  it('逾期置顶在前（最早逾期靠前），其后为近 7 天待办按日期升序', () => {
+    const { statuses } = buildFixture();
+    const tasks: Task[] = [
+      task({
+        id: 'x',
+        title: '最晚逾期',
+        statusId: 'status-in-progress',
+        stages: [
+          stage('x1', '阶段', 0, '2026-09-05'), // 逾期较晚
+          stage('x2', '阶段', 1, '2026-09-01'), // 逾期最早
+        ],
+      }),
+      task({
+        id: 'y',
+        title: '未来晚',
+        statusId: 'status-in-progress',
+        stages: [stage('y1', '阶段', 0, '2026-09-12')],
+      }),
+      task({
+        id: 'z',
+        title: '未来早',
+        statusId: 'status-in-progress',
+        stages: [stage('z1', '阶段', 0, '2026-09-08')],
+      }),
+    ];
+    const events = buildCalendarEvents(tasks, statuses, { now: NOW });
+    const schedule = buildScheduleEvents(events, { now: NOW, days: 7 });
+
+    // 逾期两条在前（最早逾期靠前），然后两条未来按日期升序。
+    expect(schedule.map((e) => e.stageId)).toEqual(['x2', 'x1', 'z1', 'y1']);
+  });
+
+  it('超出今日起 7 天窗口的未来事件不出现', () => {
+    const { statuses } = buildFixture();
+    const tasks: Task[] = [
+      task({
+        id: 'far',
+        title: '超窗',
+        statusId: 'status-in-progress',
+        stages: [stage('f1', '阶段', 0, '2026-09-20')],
+      }),
+    ];
+    const events = buildCalendarEvents(tasks, statuses, { now: NOW });
+    const schedule = buildScheduleEvents(events, { now: NOW, days: 7 });
+    expect(schedule).toEqual([]);
   });
 });

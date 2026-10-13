@@ -26,4 +26,11 @@ export const CALENDAR_COPY = {
   overdueLabel: '已逾期',
   updatedLabel: '更新于',
   dayPanelTitle: (dateKey: string) => `${dateKey} 的条目`,
+  // 侧栏（日程 / 动态）
+  sidebarLabel: '日历侧栏',
+  scheduleTitle: '日程',
+  activityTitle: '动态',
+  emptySchedule: '近期无到期项',
+  emptyActivity: '暂无进展',
+  overdueSuffix: '逾期',
 } as const;
