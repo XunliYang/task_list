@@ -33,6 +33,7 @@ function task(partial: {
     stages: partial.stages,
     currentStageId: partial.currentStageId ?? partial.stages[0]?.id ?? null,
     notes: '',
+    jobApplication: null,
     createdAt: '2026-08-01T00:00:00Z',
     updatedAt: partial.updatedAt ?? '2026-09-01T00:00:00Z',
   };

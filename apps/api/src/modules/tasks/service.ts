@@ -149,6 +149,7 @@ export function createTask(snapshot: DataSnapshot, input: CreateTaskInput): Crea
     stages,
     currentStageId: stages.length > 0 ? stages[0].id : null,
     notes: input.notes,
+    jobApplication: input.jobApplication ?? null,
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -182,6 +183,8 @@ export function updateTask(
     statusId: input.statusId ?? existing.statusId,
     tags: input.tags ?? existing.tags,
     notes: input.notes !== undefined ? input.notes : existing.notes,
+    jobApplication:
+      input.jobApplication !== undefined ? input.jobApplication : existing.jobApplication,
     updatedAt: now(),
   };
 

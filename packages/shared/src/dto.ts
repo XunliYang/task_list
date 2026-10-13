@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { examInfoSchema, stageStatusSchema, taskSchema, stageSchema } from './domain';
+import { examInfoSchema, stageStatusSchema, taskSchema, stageSchema, jobApplicationSchema } from './domain';
 
 // ============================================================================
 // 创建/更新用的 DTO
@@ -46,6 +46,7 @@ export const createTaskInputSchema = z.object({
   notes: z.string().default(''),
   statusId: z.string().min(1),
   stages: z.array(createStageInputSchema).min(1),
+  jobApplication: jobApplicationSchema.nullable().optional(),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskInputSchema>;

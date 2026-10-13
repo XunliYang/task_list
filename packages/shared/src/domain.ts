@@ -42,6 +42,30 @@ export const statusCategorySchema = z.object({
 export type StatusCategory = z.infer<typeof statusCategorySchema>;
 
 // ============================================================================
+// 求职信息（JobApplication）：任务中加入公告/简历/投递链接、投递岗位/要求。
+// null 表示「非求职类任务」；任一字段填写即视为求职任务。
+// ============================================================================
+
+/** 规整层：空串 / 纯空白归一为 null（URL 与文本字段统一处理）。 */
+const emptyToNull = (value: unknown): unknown =>
+  typeof value === 'string' && value.trim() === '' ? null : value;
+
+export const jobApplicationSchema = z.object({
+  /** 公告链接 */
+  announcementUrl: z.preprocess(emptyToNull, z.string().url().nullable()),
+  /** 简历链接 */
+  resumeUrl: z.preprocess(emptyToNull, z.string().url().nullable()),
+  /** 投递链接 */
+  applyUrl: z.preprocess(emptyToNull, z.string().url().nullable()),
+  /** 投递岗位 */
+  position: z.preprocess(emptyToNull, z.string().nullable()),
+  /** 投递要求 */
+  requirements: z.preprocess(emptyToNull, z.string().nullable()),
+});
+
+export type JobApplication = z.infer<typeof jobApplicationSchema>;
+
+// ============================================================================
 // 任务（Task）
 // ============================================================================
 
@@ -58,6 +82,8 @@ export const taskSchema = z
     /** 当前所处阶段（阶段流转的操作对象） */
     currentStageId: z.string().nullable(),
     notes: z.string(),
+    /** 求职信息：null 表示非求职类任务（缺省键在解析时归一为 null） */
+    jobApplication: jobApplicationSchema.nullable().default(null),
     /** ISO datetime */
     createdAt: z.string(),
     updatedAt: z.string(),
