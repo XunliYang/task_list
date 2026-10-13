@@ -95,6 +95,9 @@ curl http://localhost:3000/api/health
 > （`/* → /index.html`），请把 `/api/*` 从该重定向中排除，否则 `/api/*` 会返回
 > 200 HTML 而非 404，此时需显式设置 `VITE_DATA_SOURCE=local`。
 
+本地模式下，首页提供**数据备份**入口：可把当前数据导出为 JSON 文件、或从备份
+文件恢复，用于换设备/清理站点数据前的数据迁移。
+
 本地验证静态产物：
 
 ```bash

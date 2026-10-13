@@ -1,0 +1,32 @@
+/* 首页「数据备份」区块（本地数据导出/导入）。 */
+
+.data-backup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.data-backup-hint {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.data-backup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.data-backup-success {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--success-text);
+}
+
+.data-backup-error {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--error-text);
+}
