@@ -134,6 +134,24 @@ export const progressEntrySchema = z.object({
 export type ProgressEntry = z.infer<typeof progressEntrySchema>;
 
 // ============================================================================
+// 最近进展聚合投影（GET /api/progress 只读跨任务聚合；ProgressEntry + 联出的 taskTitle）
+// ============================================================================
+
+export const recentProgressEntrySchema = z.object({
+  id: z.string().min(1),
+  taskId: z.string().min(1),
+  /** 联出的任务标题（侧栏展示与跳转详情用） */
+  taskTitle: z.string(),
+  /** ISO datetime（原 ProgressEntry.at） */
+  at: z.string(),
+  summary: z.string(),
+  /** 该条进展发生在哪个阶段 */
+  stageId: z.string().nullable(),
+});
+
+export type RecentProgressEntry = z.infer<typeof recentProgressEntrySchema>;
+
+// ============================================================================
 // 考试/面试信息（预留页面用）
 // ============================================================================
 

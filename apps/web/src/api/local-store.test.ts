@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ExamInfo, StatusCategory, Task } from '@task-list/shared';
+import type { ExamInfo, RecentProgressEntry, StatusCategory, Task } from '@task-list/shared';
 import { ApiError } from './errors';
 import { LocalStore, createSeedSnapshot, STORAGE_KEY, parseBackupJson } from './local-store';
 
@@ -566,5 +566,56 @@ describe('LocalStore：备份导出/导入', () => {
       'status-in-progress',
       'status-done',
     ]);
+  });
+});
+
+describe('LocalStore：GET /api/progress 跨任务聚合读', () => {
+  it('跨任务按 at 倒序聚合、联出 taskTitle、limit 切片', () => {
+    // 用假时钟固定先后，保证 at 严格递增，倒序断言确定。
+    vi.useFakeTimers();
+    try {
+      const store = newStore();
+      vi.setSystemTime(new Date('2026-09-10T10:00:00.000Z'));
+      const a = store.request<Task>('POST', '/tasks', createTaskBody({ title: '任务A' }));
+      const b = store.request<Task>('POST', '/tasks', createTaskBody({ title: '任务B' }));
+
+      vi.setSystemTime(new Date('2026-09-10T10:00:01.000Z'));
+      store.request('POST', `/tasks/${a.id}/progress`, { summary: 'A 第一条' });
+      vi.setSystemTime(new Date('2026-09-10T10:00:02.000Z'));
+      store.request('POST', `/tasks/${b.id}/progress`, { summary: 'B 第一条' });
+      vi.setSystemTime(new Date('2026-09-10T10:00:03.000Z'));
+      store.request('POST', `/tasks/${a.id}/progress`, { summary: 'A 第二条' });
+
+      const all = store.request<RecentProgressEntry[]>('GET', '/progress');
+      expect(all).toHaveLength(3);
+      expect(all[0].summary).toBe('A 第二条'); // 最新的在前
+      expect(all[0].taskTitle).toBe('任务A');
+      expect(all.some((e) => e.taskTitle === '任务B')).toBe(true);
+
+      const limited = store.request<RecentProgressEntry[]>('GET', '/progress?limit=2');
+      expect(limited).toHaveLength(2);
+      expect(limited[0].summary).toBe('A 第二条');
+      expect(limited[1].summary).toBe('B 第一条');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('空库 → 200 []；缺省 limit=10', () => {
+    const store = newStore();
+    expect(store.request<RecentProgressEntry[]>('GET', '/progress')).toEqual([]);
+  });
+
+  it('limit 非法 → 400 validation_error', () => {
+    const store = newStore();
+    let caught: ApiError | null = null;
+    try {
+      store.request('GET', '/progress?limit=abc');
+    } catch (err) {
+      caught = err as ApiError;
+    }
+    expect(caught).toBeInstanceOf(ApiError);
+    expect(caught?.status).toBe(400);
+    expect(caught?.code).toBe('validation_error');
   });
 });

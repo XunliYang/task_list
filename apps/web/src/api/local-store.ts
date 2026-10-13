@@ -22,6 +22,7 @@ import type {
   ExamsImportResult,
   JobApplication,
   ProgressEntry,
+  RecentProgressEntry,
   Stage,
   StageStatus,
   StatusCategory,
@@ -184,6 +185,41 @@ function listProgress(snapshot: DataSnapshot, taskId: string): ProgressEntry[] {
   return snapshot.progressEntries
     .filter((entry) => entry.taskId === taskId)
     .sort((a, b) => b.at.localeCompare(a.at));
+}
+
+/** GET /api/progress 的缺省返回条数（与 apps/api 的 DEFAULT_PROGRESS_LIMIT 对齐）。 */
+const DEFAULT_PROGRESS_LIMIT = 10;
+
+/** 解析 `?limit=N`：缺省 10；非法（非正整数）→ 400 validation_error。 */
+function parseLimitParam(query: URLSearchParams): number {
+  const raw = query.get('limit');
+  if (raw === null) {
+    return DEFAULT_PROGRESS_LIMIT;
+  }
+  if (!/^\d+$/.test(raw)) {
+    httpError(400, 'validation_error', `limit 必须为正整数，收到：${raw}`);
+  }
+  return Number(raw);
+}
+
+/** 跨任务聚合最近进展：按 at 倒序取前 limit 条，联出 taskTitle（REST 同构实现）。 */
+function listRecentProgress(
+  snapshot: DataSnapshot,
+  limit: number = DEFAULT_PROGRESS_LIMIT,
+): RecentProgressEntry[] {
+  const titleById = new Map(snapshot.tasks.map((task) => [task.id, task.title]));
+  return snapshot.progressEntries
+    .filter((entry) => titleById.has(entry.taskId))
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, limit)
+    .map((entry) => ({
+      id: entry.id,
+      taskId: entry.taskId,
+      taskTitle: titleById.get(entry.taskId) as string,
+      at: entry.at,
+      summary: entry.summary,
+      stageId: entry.stageId,
+    }));
 }
 
 // ---------------------------------------------------------------------------
@@ -1066,6 +1102,9 @@ export class LocalStore {
     if (route === 'exams') {
       return this.routeExams(method, segments, query, body) as T;
     }
+    if (route === 'progress') {
+      return this.routeProgress(method, segments, query, body) as T;
+    }
     notFound(`未找到路由：${method} ${pathname}`);
   }
 
@@ -1172,6 +1211,23 @@ export class LocalStore {
       }
     }
 
+    notFound(`未找到路由：${method} ${segments.join('/')}`);
+  }
+
+  /** GET /api/progress?limit=N：跨任务聚合最近进展（只读）。 */
+  private routeProgress(
+    method: Method,
+    segments: string[],
+    query: URLSearchParams,
+    body: unknown,
+  ): unknown {
+    // 忽略 body（只读端点，无请求体）；segments[0] 已由 request() 判定为 'progress'。
+    void body;
+    if (segments[1] === undefined) {
+      if (method === 'GET') {
+        return listRecentProgress(this.load(), parseLimitParam(query));
+      }
+    }
     notFound(`未找到路由：${method} ${segments.join('/')}`);
   }
 

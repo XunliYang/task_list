@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import type { StatusCategory, Task } from '@task-list/shared';
 import { useStatuses } from '../../api/statuses';
 import { useTasks } from '../../api/tasks';
-import { toDateKey } from './calendar-date';
+import { addDays, toDateKey } from './calendar-date';
 
 /**
  * 把 Task[] 投影成日历事件。
@@ -145,6 +145,45 @@ export function groupEventsByDate(events: CalendarEvent[]): Map<string, Calendar
   }
   for (const list of map.values()) list.sort(compareCalendarEvents);
   return map;
+}
+
+// ---------------------------------------------------------------------------
+// 侧栏「日程」数据选择（复用同一投影，不新增事件源）
+// ---------------------------------------------------------------------------
+
+export interface ScheduleOptions {
+  /** 注入的「今天」（默认真实当前时间） */
+  now?: Date;
+  /** 覆盖的后续天数（含今天，默认 7） */
+  days?: number;
+}
+
+/**
+ * 由 stage-due 投影产出「日程」列表：今日起 N 天的阶段截止事件，逾期置顶。
+ *
+ * - 只取未完成的 stage-due（已完成的阶段不再是「待办截止」）。
+ * - 逾期（日期早于今天且未完成）一律置顶、最早逾期在前。
+ * - 其后为今天 → 今天+N-1 天内的未完成截止，按日期升序；同日按标题。
+ * - 仅做排序/切片，不改事件字段（overdue 标记仍驱动展示层的标红）。
+ */
+export function buildScheduleEvents(
+  events: CalendarEvent[],
+  options: ScheduleOptions = {},
+): CalendarEvent[] {
+  const { now = new Date(), days = 7 } = options;
+  const todayKey = toDateKey(now);
+  const endKey = toDateKey(addDays(now, days - 1));
+
+  const byDate = (a: CalendarEvent, b: CalendarEvent): number =>
+    a.date.localeCompare(b.date) || compareCalendarEvents(a, b);
+
+  const pendingDeadlines = events.filter((e) => e.kind === 'stage-due' && !e.done);
+  const overdue = pendingDeadlines.filter((e) => e.overdue);
+  const upcoming = pendingDeadlines.filter(
+    (e) => !e.overdue && e.date >= todayKey && e.date <= endKey,
+  );
+
+  return [...overdue.sort(byDate), ...upcoming.sort(byDate)];
 }
 
 export function useCalendarEvents(options: ProjectCalendarOptions = {}) {

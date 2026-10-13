@@ -5,6 +5,7 @@ import { JsonStore } from './store/json-store';
 import { createTasksRouter } from './modules/tasks/router';
 import { createStatusesRouter } from './modules/statuses/router';
 import { createExamsRouter } from './modules/exams/router';
+import { createProgressRouter } from './modules/progress/router';
 import { errorHandler, notFoundHandler } from './middleware/error';
 
 export interface AppOptions {
@@ -24,6 +25,7 @@ export function createApp(options: AppOptions): Express {
   app.use('/api/statuses', createStatusesRouter(options.store));
   app.use('/api/tasks', createTasksRouter(options.store));
   app.use('/api/exams', createExamsRouter(options.store));
+  app.use('/api/progress', createProgressRouter(options.store));
 
   // 兜底 404 与统一错误响应（放在所有路由之后）。
   app.use(notFoundHandler);

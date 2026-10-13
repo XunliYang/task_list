@@ -473,3 +473,38 @@ describe('考试/面试信息', () => {
     expect(second.body.details.taskId).toBe(first.body.task.id);
   });
 });
+
+describe('进展聚合 GET /api/progress', () => {
+  it('空库 → 200 []', async () => {
+    const res = await request(app).get('/api/progress');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+
+  it('跨任务按 at 倒序聚合、联出 taskTitle、limit 切片', async () => {
+    const a = await createTaskViaApi({ title: '聚合A' });
+    const b = await createTaskViaApi({ title: '聚合B' });
+    await request(app).post(`/api/tasks/${a.id}/progress`).send({ summary: 'A 第一条' });
+    await request(app).post(`/api/tasks/${b.id}/progress`).send({ summary: 'B 第一条' });
+    await request(app).post(`/api/tasks/${a.id}/progress`).send({ summary: 'A 第二条' });
+
+    const res = await request(app).get('/api/progress');
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveLength(3);
+    expect(res.body[0].summary).toBe('A 第二条');
+    expect(res.body[0].taskTitle).toBe('聚合A');
+    expect(res.body[0].stageId).toBeNull();
+    expect(res.body.some((e: { taskTitle: string }) => e.taskTitle === '聚合B')).toBe(true);
+
+    const limited = await request(app).get('/api/progress?limit=2');
+    expect(limited.body).toHaveLength(2);
+    expect(limited.body[0].summary).toBe('A 第二条');
+    expect(limited.body[1].summary).toBe('B 第一条');
+  });
+
+  it('limit 非法 → 400 validation_error', async () => {
+    const res = await request(app).get('/api/progress?limit=abc');
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('validation_error');
+  });
+});
