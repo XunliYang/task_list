@@ -6,8 +6,9 @@ import { useCreateTask } from '../../api/tasks';
 import { Button, SuccessMorphButton } from '../../ui';
 import { useDialogModal } from './dialog-a11y';
 import { DueDatePicker } from './DueDatePicker';
-import { buildCreateTaskInput } from './task-create';
-import type { TaskCreateStageDraft } from './task-create';
+import { JobApplicationFields } from './JobApplicationFields';
+import { buildCreateTaskInput, emptyJobApplicationDraft, jobApplicationUrlErrors } from './task-create';
+import type { JobApplicationDraft, TaskCreateStageDraft } from './task-create';
 import './task.css';
 
 export interface TaskCreateDialogProps {
@@ -19,11 +20,23 @@ export interface TaskCreateDialogProps {
   onCreated?: (task: Task) => void;
 }
 
-const EMPTY_STAGES: TaskCreateStageDraft[] = [{ name: '准备', dueDate: null }];
+/**
+ * 新建表单默认阶段模板（求职全链路，仅作表单初始 state，用户可增删改）。
+ * 后端 `CreateTaskInput.stages` 语义不变：模板不会单独写入后端。
+ */
+const DEFAULT_STAGES: TaskCreateStageDraft[] = [
+  { name: '网申投递', dueDate: null },
+  { name: '笔试', dueDate: null },
+  { name: '一面', dueDate: null },
+  { name: '二面', dueDate: null },
+  { name: 'HR 面', dueDate: null },
+  { name: 'offer', dueDate: null },
+  { name: '签约', dueDate: null },
+];
 
 /**
  * 快捷新建任务弹窗：标题（必填）/ 公司 / 标签（回车追加、× 删除）/ 状态分类 /
- * 阶段（默认 1 个「准备」，可增删改名、可设截止时间）/ 备注。
+ * 阶段（默认「网申投递→…→签约」7 个，可增删改名、可设截止时间）/ 求职信息（可折叠）/ 备注。
  *
  * 提交走 `useCreateTask.mutateAsync`，成功后 invalidate 并关闭弹窗；
  * 失败 rethrow 让 SuccessMorphButton 进入 error 态，同时展示后端 message，不静默失败。
@@ -44,8 +57,11 @@ export function TaskCreateDialog({
   const [tags, setTags] = useState<string[]>([]);
   const [tagDraft, setTagDraft] = useState('');
   const [statusId, setStatusId] = useState('');
-  const [stages, setStages] = useState<TaskCreateStageDraft[]>(EMPTY_STAGES);
+  const [stages, setStages] = useState<TaskCreateStageDraft[]>(DEFAULT_STAGES);
   const [notes, setNotes] = useState('');
+  const [jobApplication, setJobApplication] = useState<JobApplicationDraft>(
+    emptyJobApplicationDraft,
+  );
   const [touched, setTouched] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -62,7 +78,8 @@ export function TaskCreateDialog({
     setTags([]);
     setTagDraft('');
     setNotes('');
-    setStages(EMPTY_STAGES);
+    setStages(DEFAULT_STAGES);
+    setJobApplication(emptyJobApplicationDraft());
     setTouched(false);
     setSubmitError(null);
     setStatusId(initialStatusId ?? '');
@@ -79,7 +96,17 @@ export function TaskCreateDialog({
   const titleInvalid = title.trim().length === 0;
   // 阶段规整后（过滤空名）至少需 1 个：删除/清空全部阶段后禁止提交，与后端 min(1) 对齐。
   const stagesInvalid = stages.every((stage) => stage.name.trim().length === 0);
-  const canSubmit = !titleInvalid && !stagesInvalid && !createTask.isPending;
+  // 三个链接字段：非空即须为合法 URL（与后端 zod `.url()` 一致）。
+  const urlErrors = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const error of jobApplicationUrlErrors(jobApplication)) {
+      map[error.field] = error.message;
+    }
+    return map;
+  }, [jobApplication]);
+  const urlsInvalid = Object.keys(urlErrors).length > 0;
+  const canSubmit =
+    !titleInvalid && !stagesInvalid && !urlsInvalid && !createTask.isPending;
 
   function updateStage(index: number, patch: Partial<TaskCreateStageDraft>) {
     setStages((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
@@ -116,6 +143,7 @@ export function TaskCreateDialog({
       statusId: effectiveStatusId,
       stages,
       notes,
+      jobApplication,
     });
     if (!input) {
       throw new Error('表单校验未通过');
@@ -236,6 +264,12 @@ export function TaskCreateDialog({
           </Button>
           {stagesInvalid && <p className="field-error">至少保留一个阶段</p>}
         </div>
+
+        <JobApplicationFields
+          value={jobApplication}
+          onChange={setJobApplication}
+          errors={urlErrors}
+        />
 
         <label>
           备注

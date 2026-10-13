@@ -76,7 +76,17 @@ describe('TaskCreateDialog', () => {
     const [input] = mutateMock.mock.calls[0] as [Task];
     expect(input.title).toBe('投递 ACME');
     expect(input.statusId).toBe('status-a'); // 默认取第一个分类
-    expect(input.stages).toEqual([{ name: '准备', dueDate: null }]); // 默认 1 个「准备」阶段
+    // 默认阶段模板「网申投递→…→签约」7 个阶段
+    expect(input.stages).toEqual([
+      { name: '网申投递', dueDate: null },
+      { name: '笔试', dueDate: null },
+      { name: '一面', dueDate: null },
+      { name: '二面', dueDate: null },
+      { name: 'HR 面', dueDate: null },
+      { name: 'offer', dueDate: null },
+      { name: '签约', dueDate: null },
+    ]);
+    expect(input.jobApplication).toBeNull();
 
     await waitFor(() => {
       expect(onCreated).toHaveBeenCalled();
@@ -84,13 +94,16 @@ describe('TaskCreateDialog', () => {
     });
   });
 
-  it('删除唯一阶段后提交按钮禁用且提示「至少保留一个阶段」', async () => {
+  it('删除全部阶段后提交按钮禁用且提示「至少保留一个阶段」', async () => {
     renderDialog();
     const user = userEvent.setup();
     await user.type(screen.getByLabelText('标题'), '投递 ACME');
     expect(screen.getByRole('button', { name: '创建' })).toBeEnabled();
 
-    await user.click(screen.getByLabelText('删除阶段 1'));
+    // 默认 7 个阶段，逐个删除首位直到为空（删除后索引前移，始终点「删除阶段 1」）。
+    for (let i = 0; i < 7; i++) {
+      await user.click(screen.getByLabelText('删除阶段 1'));
+    }
 
     expect(screen.getByRole('button', { name: '创建' })).toBeDisabled();
     expect(screen.getByText('至少保留一个阶段')).toBeInTheDocument();
@@ -108,6 +121,57 @@ describe('TaskCreateDialog', () => {
       expect(screen.getByText('创建失败：服务器繁忙')).toBeInTheDocument(),
     );
     expect(screen.getByRole('button', { name: '失败，重试' })).toBeInTheDocument();
+  });
+
+  it('默认折叠「求职信息」，点击后展开并出现 5 个字段', async () => {
+    renderDialog();
+    const user = userEvent.setup();
+    expect(screen.queryByLabelText('投递岗位')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '求职信息' }));
+    expect(screen.getByLabelText('投递岗位')).toBeInTheDocument();
+    expect(screen.getByLabelText('公告链接')).toBeInTheDocument();
+    expect(screen.getByLabelText('简历链接')).toBeInTheDocument();
+    expect(screen.getByLabelText('投递链接')).toBeInTheDocument();
+    expect(screen.getByLabelText('投递要求')).toBeInTheDocument();
+  });
+
+  it('填写完整求职信息后提交，payload 携带 jobApplication', async () => {
+    mutateMock.mockResolvedValue({ id: 't9', title: '投递 ACME' } as Task);
+    renderDialog();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('标题'), '投递 ACME');
+    await user.click(screen.getByRole('button', { name: '求职信息' }));
+    await user.type(screen.getByLabelText('投递岗位'), '后端工程师');
+    await user.type(screen.getByLabelText('公告链接'), 'https://a.example.com/announce');
+    await user.type(screen.getByLabelText('简历链接'), 'https://r.example.com/resume.pdf');
+    await user.type(screen.getByLabelText('投递链接'), 'https://app.example.com/apply');
+    await user.type(screen.getByLabelText('投递要求'), '熟悉 Go');
+
+    await user.click(screen.getByRole('button', { name: '创建' }));
+
+    await waitFor(() => expect(mutateMock).toHaveBeenCalledTimes(1));
+    const [input] = mutateMock.mock.calls[0] as [Task];
+    expect(input.jobApplication).toEqual({
+      position: '后端工程师',
+      announcementUrl: 'https://a.example.com/announce',
+      resumeUrl: 'https://r.example.com/resume.pdf',
+      applyUrl: 'https://app.example.com/apply',
+      requirements: '熟悉 Go',
+    });
+  });
+
+  it('非法 URL 阻止提交并给出提示', async () => {
+    renderDialog();
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('标题'), '投递 ACME');
+    await user.click(screen.getByRole('button', { name: '求职信息' }));
+    await user.type(screen.getByLabelText('公告链接'), 'not-a-url');
+
+    expect(screen.getByText('公告链接不是有效链接')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '创建' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: '创建' }));
+    expect(mutateMock).not.toHaveBeenCalled();
   });
 });
 
