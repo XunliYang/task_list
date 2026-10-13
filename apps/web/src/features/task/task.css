@@ -289,6 +289,7 @@
 
 .dialog input[type='text'],
 .dialog input[type='date'],
+.dialog input[type='url'],
 .dialog textarea,
 .dialog select {
   width: 100%;
@@ -519,6 +520,69 @@
 
 .not-found a {
   color: var(--primary-text);
+}
+
+/* ------------------------------ 求职信息（折叠分区） ------------------------------ */
+.job-application {
+  margin: var(--space-3) 0;
+}
+
+.job-application-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary-text-on-card);
+  cursor: pointer;
+}
+
+.job-application-toggle:hover {
+  color: var(--ink);
+}
+
+.job-application-fields {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-soft);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+}
+
+/* ------------------------------ 求职信息卡片（详情页） ------------------------------ */
+.job-application-dl {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--surface-soft);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+}
+
+.job-application-dl dt {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.job-application-dl dd {
+  margin: 0;
+  color: var(--body);
+  overflow-wrap: anywhere;
+}
+
+.job-application-dl dd a {
+  color: var(--primary-text);
+}
+
+.job-application-dl .job-application-requirements {
+  white-space: pre-wrap;
 }
 
 /* ------------------------------ 减少动效 ------------------------------ */

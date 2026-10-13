@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useStatuses } from '../../api/statuses';
 import { useDeleteTask, useTask, useTaskProgress } from '../../api/tasks';
@@ -9,9 +10,26 @@ import { StageEditorDialog } from './StageEditorDialog';
 import { StageFlowPanel } from './StageFlowPanel';
 import { TaskEditDialog } from './TaskEditDialog';
 import { formatDateTime, readableTextColor } from './task-utils';
+import { isHttpUrl } from './task-create';
 import './task.css';
 
 /** 任务详情页（/tasks/:id）：详情 + 编辑 + 阶段流转 + 进展记录。 */
+
+function jobApplicationLink(url: string | null): ReactNode {
+  if (!url) {
+    return '—';
+  }
+  // 仅 http/https 渲染为可点击链接；其余协议（历史数据）以纯文本兜底，避免 XSS。
+  if (!isHttpUrl(url)) {
+    return url;
+  }
+  return (
+    <a href={url} target="_blank" rel="noreferrer">
+      {url}
+    </a>
+  );
+}
+
 export function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -85,6 +103,26 @@ export function TaskDetailPage() {
         <dt>备注</dt>
         <dd>{task.notes || '—'}</dd>
       </dl>
+
+      {task.jobApplication && (
+        <section className="task-section">
+          <h2>求职信息</h2>
+          <dl className="job-application-dl">
+            <dt>投递岗位</dt>
+            <dd>{task.jobApplication.position ?? '—'}</dd>
+            <dt>公告链接</dt>
+            <dd>{jobApplicationLink(task.jobApplication.announcementUrl)}</dd>
+            <dt>简历链接</dt>
+            <dd>{jobApplicationLink(task.jobApplication.resumeUrl)}</dd>
+            <dt>投递链接</dt>
+            <dd>{jobApplicationLink(task.jobApplication.applyUrl)}</dd>
+            <dt>投递要求</dt>
+            <dd className="job-application-requirements">
+              {task.jobApplication.requirements ?? '—'}
+            </dd>
+          </dl>
+        </section>
+      )}
 
       <section className="task-section">
         <h2>阶段流转</h2>

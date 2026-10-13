@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildCreateTaskInput } from './task-create';
+import {
+  buildCreateTaskInput,
+  emptyJobApplicationDraft,
+  isHttpUrl,
+  jobApplicationDraftFrom,
+  jobApplicationUrlErrors,
+  normalizeJobApplication,
+} from './task-create';
 import type { TaskCreateFormState } from './task-create';
 
 function formState(overrides: Partial<TaskCreateFormState> = {}): TaskCreateFormState {
@@ -13,6 +20,7 @@ function formState(overrides: Partial<TaskCreateFormState> = {}): TaskCreateForm
       { name: '笔试', dueDate: '2026-10-01' },
     ],
     notes: '备注',
+    jobApplication: emptyJobApplicationDraft(),
     ...overrides,
   };
 }
@@ -56,5 +64,107 @@ describe('buildCreateTaskInput', () => {
     expect(input!.tags).toEqual(['go', 'backend']);
     expect(input!.statusId).toBe('status-a');
     expect(input!.notes).toBe('备注');
+  });
+});
+
+describe('求职信息规整（jobApplication）', () => {
+  it('全空 ⇒ jobApplication 为 null（非求职任务）', () => {
+    const input = buildCreateTaskInput(formState({ jobApplication: emptyJobApplicationDraft() }));
+    expect(input!.jobApplication).toBeNull();
+  });
+
+  it('任一字段非空 ⇒ 组成对象，空串归一为 null，文本做 trim', () => {
+    const input = buildCreateTaskInput(
+      formState({
+        jobApplication: {
+          position: '  后端工程师  ',
+          announcementUrl: '',
+          resumeUrl: '  ',
+          applyUrl: 'https://app.acme.com/apply',
+          requirements: '要求：熟悉 Go\n加分：实习经历',
+        },
+      }),
+    );
+    expect(input!.jobApplication).toEqual({
+      position: '后端工程师',
+      announcementUrl: null,
+      resumeUrl: null,
+      applyUrl: 'https://app.acme.com/apply',
+      requirements: '要求：熟悉 Go\n加分：实习经历',
+    });
+  });
+
+  it('normalizeJobApplication：仅空白字段 ⇒ null', () => {
+    expect(
+      normalizeJobApplication({
+        position: '  ',
+        announcementUrl: '',
+        resumeUrl: ' ',
+        applyUrl: '',
+        requirements: '\t',
+      }),
+    ).toBeNull();
+  });
+
+  it('jobApplicationDraftFrom：null ⇒ 空草稿', () => {
+    expect(jobApplicationDraftFrom(null)).toEqual(emptyJobApplicationDraft());
+  });
+
+  it('jobApplicationDraftFrom：对象 ⇒ 回填（null 字段补空串）', () => {
+    expect(
+      jobApplicationDraftFrom({
+        position: '后端',
+        announcementUrl: 'https://a.com',
+        resumeUrl: null,
+        applyUrl: null,
+        requirements: null,
+      }),
+    ).toEqual({
+      position: '后端',
+      announcementUrl: 'https://a.com',
+      resumeUrl: '',
+      applyUrl: '',
+      requirements: '',
+    });
+  });
+});
+
+describe('求职信息链接校验（jobApplicationUrlErrors）', () => {
+  it('全空 ⇒ 无错误', () => {
+    expect(jobApplicationUrlErrors(emptyJobApplicationDraft())).toEqual([]);
+  });
+
+  it('非法 URL 的字段返回对应错误提示', () => {
+    const errors = jobApplicationUrlErrors({
+      position: '',
+      announcementUrl: 'not-a-url',
+      resumeUrl: 'javascript:alert(1)',
+      applyUrl: 'https://ok.example.com',
+      requirements: '',
+    });
+    expect(errors.map((e) => e.field)).toEqual(['announcementUrl', 'resumeUrl']);
+    expect(errors[0].message).toContain('公告链接');
+    expect(errors[1].message).toContain('简历链接');
+  });
+
+  it('合法 URL（含 http/https）⇒ 无错误', () => {
+    expect(
+      jobApplicationUrlErrors({
+        position: '',
+        announcementUrl: 'https://a.example.com/announce',
+        resumeUrl: 'http://r.example.com/resume.pdf',
+        applyUrl: 'https://app.example.com/apply',
+        requirements: '',
+      }),
+    ).toEqual([]);
+  });
+
+  it('isHttpUrl：仅 http/https 为真，阻断 javascript/mailto/ftp', () => {
+    expect(isHttpUrl('https://a.example.com')).toBe(true);
+    expect(isHttpUrl('http://a.example.com')).toBe(true);
+    expect(isHttpUrl('javascript:alert(1)')).toBe(false);
+    expect(isHttpUrl('mailto:a@b.com')).toBe(false);
+    expect(isHttpUrl('ftp://a.example.com/x')).toBe(false);
+    expect(isHttpUrl('not-a-url')).toBe(false);
   });
 });

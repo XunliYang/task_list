@@ -1,10 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Task } from '@task-list/shared';
 import { useStatuses } from '../../api/statuses';
 import { useUpdateTask } from '../../api/tasks';
 import { Button, SuccessMorphButton } from '../../ui';
 import { useDialogModal } from './dialog-a11y';
+import { JobApplicationFields } from './JobApplicationFields';
+import {
+  jobApplicationDraftFrom,
+  jobApplicationUrlErrors,
+  normalizeJobApplication,
+} from './task-create';
+import type { JobApplicationDraft } from './task-create';
 
 export interface TaskEditDialogProps {
   task: Task;
@@ -12,7 +19,7 @@ export interface TaskEditDialogProps {
   onClose: () => void;
 }
 
-/** 任务基本信息编辑弹窗（标题/公司/标签/状态分类/备注）。 */
+/** 任务基本信息编辑弹窗（标题/公司/标签/状态分类/求职信息/备注）。 */
 export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
   const updateTask = useUpdateTask(task.id);
   const statuses = useStatuses();
@@ -25,6 +32,9 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
   const [tagDraft, setTagDraft] = useState('');
   const [statusId, setStatusId] = useState(task.statusId);
   const [notes, setNotes] = useState(task.notes);
+  const [jobApplication, setJobApplication] = useState<JobApplicationDraft>(() =>
+    jobApplicationDraftFrom(task.jobApplication),
+  );
   const [touched, setTouched] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -36,13 +46,23 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
       setTagDraft('');
       setStatusId(task.statusId);
       setNotes(task.notes);
+      setJobApplication(jobApplicationDraftFrom(task.jobApplication));
       setTouched(false);
       setSubmitError(null);
     }
   }, [open, task]);
 
   const titleInvalid = title.trim().length === 0;
-  const canSubmit = !titleInvalid && !updateTask.isPending;
+  // 三个链接字段：非空即须为合法 URL（与后端 zod `.url()` 一致）。
+  const urlErrors = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const error of jobApplicationUrlErrors(jobApplication)) {
+      map[error.field] = error.message;
+    }
+    return map;
+  }, [jobApplication]);
+  const urlsInvalid = Object.keys(urlErrors).length > 0;
+  const canSubmit = !titleInvalid && !urlsInvalid && !updateTask.isPending;
 
   function addTag() {
     const tag = tagDraft.trim();
@@ -71,6 +91,7 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
         tags,
         statusId,
         notes,
+        jobApplication: normalizeJobApplication(jobApplication),
       });
       onClose();
     } catch (err) {
@@ -148,6 +169,12 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
             ))}
           </select>
         </label>
+
+        <JobApplicationFields
+          value={jobApplication}
+          onChange={setJobApplication}
+          errors={urlErrors}
+        />
 
         <label>
           备注
