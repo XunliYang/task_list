@@ -105,6 +105,37 @@ describe('TaskEditDialog', () => {
     expect(screen.getByLabelText('投递要求')).toHaveValue('熟悉 Go');
   });
 
+  it('切换任务后「求职信息」分区折叠态随新任务重算', () => {
+    const withJob: JobApplication = {
+      position: '后端工程师',
+      announcementUrl: 'https://a.example.com/announce',
+      resumeUrl: null,
+      applyUrl: null,
+      requirements: '',
+    };
+    const { rerender } = renderDialog(
+      makeTask({ id: 'task-with-job', jobApplication: withJob }),
+    );
+    expect(screen.getByRole('button', { name: '求职信息' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+
+    rerender(
+      <QueryClientProvider client={new QueryClient()}>
+        <TaskEditDialog
+          task={makeTask({ id: 'task-no-job', jobApplication: null })}
+          open
+          onClose={() => {}}
+        />
+      </QueryClientProvider>,
+    );
+    expect(screen.getByRole('button', { name: '求职信息' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+  });
+
   it('编辑清空求职信息后提交，jobApplication 归为 null', async () => {
     mutateMock.mockResolvedValue(undefined);
     const jobApplication: JobApplication = {

@@ -8,6 +8,7 @@ import {
   normalizeJobApplication,
 } from './task-create';
 import type { TaskCreateFormState } from './task-create';
+import type { JobApplication } from '@task-list/shared';
 
 function formState(overrides: Partial<TaskCreateFormState> = {}): TaskCreateFormState {
   return {
@@ -166,5 +167,52 @@ describe('求职信息链接校验（jobApplicationUrlErrors）', () => {
     expect(isHttpUrl('mailto:a@b.com')).toBe(false);
     expect(isHttpUrl('ftp://a.example.com/x')).toBe(false);
     expect(isHttpUrl('not-a-url')).toBe(false);
+  });
+
+  it('编辑态：未改动的历史非 http 值放行，改动/新增的非法值仍阻断', () => {
+    const legacy: JobApplication = {
+      position: '后端工程师',
+      announcementUrl: 'mailto:hr@acme.com',
+      resumeUrl: null,
+      applyUrl: null,
+      requirements: '熟悉 Go',
+    };
+    // 与持久化值一致的非 http 值不报错。
+    expect(
+      jobApplicationUrlErrors(
+        {
+          position: '后端工程师',
+          announcementUrl: 'mailto:hr@acme.com',
+          resumeUrl: '',
+          applyUrl: '',
+          requirements: '熟悉 Go',
+        },
+        legacy,
+      ),
+    ).toEqual([]);
+
+    // 改动为非法值（ftp:）或新增非法值仍报错。
+    const changed = jobApplicationUrlErrors(
+      {
+        position: '后端工程师',
+        announcementUrl: 'ftp://acme.com/announce',
+        resumeUrl: '',
+        applyUrl: 'javascript:alert(1)',
+        requirements: '熟悉 Go',
+      },
+      legacy,
+    );
+    expect(changed.map((e) => e.field)).toEqual(['announcementUrl', 'applyUrl']);
+  });
+
+  it('创建态（无 original）：非 http 值一律阻断', () => {
+    const errors = jobApplicationUrlErrors({
+      position: '',
+      announcementUrl: 'mailto:hr@acme.com',
+      resumeUrl: '',
+      applyUrl: '',
+      requirements: '',
+    });
+    expect(errors.map((e) => e.field)).toEqual(['announcementUrl']);
   });
 });

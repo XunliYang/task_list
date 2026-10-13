@@ -103,9 +103,12 @@ export interface JobApplicationUrlError {
 /**
  * 校验三个 URL 字段（提交前规整）：空值不报错（归一为 null）；
  * 非空必须为合法 http/https 链接（后端 `.url()` 更宽松，此处按「可点击链接」从严）。
+ * 传入 `original`（编辑态的任务持久化值）时，未改动的历史非 http 值（如 mailto:/ftp:）
+ * 放行不报错，避免编辑弹窗被既有数据卡住；新增或改动为非法值仍会阻断。
  */
 export function jobApplicationUrlErrors(
   draft: JobApplicationDraft,
+  original?: JobApplication | null,
 ): JobApplicationUrlError[] {
   const normalized = normalizeJobApplication(draft);
   if (normalized === null) {
@@ -115,9 +118,14 @@ export function jobApplicationUrlErrors(
   const errors: JobApplicationUrlError[] = [];
   for (const { field, label } of URL_FIELDS) {
     const value = normalized[field];
-    if (value !== null && !isHttpUrl(value)) {
-      errors.push({ field, message: `${label}不是有效链接` });
+    if (value === null || isHttpUrl(value)) {
+      continue;
     }
+    // 未改动的历史非 http 值放行（与持久化值逐字段比对）。
+    if (original && value === original[field]) {
+      continue;
+    }
+    errors.push({ field, message: `${label}不是有效链接` });
   }
   return errors;
 }
