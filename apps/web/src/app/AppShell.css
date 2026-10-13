@@ -21,7 +21,7 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 var(--space-5);
-  min-height: 64px;
+  min-height: var(--app-nav-height);
 }
 
 .app-shell-brand {
@@ -38,7 +38,7 @@
   align-items: center;
   gap: var(--space-1);
   flex: 1;
-  min-height: 64px;
+  min-height: var(--app-nav-height);
   /* 窄屏下入口超出视口时改为横向滚动，避免 flex nowrap 挤压导致词内折行 */
   min-width: 0;
   overflow-x: auto;

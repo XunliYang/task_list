@@ -507,4 +507,12 @@ describe('进展聚合 GET /api/progress', () => {
     expect(res.status).toBe(400);
     expect(res.body.code).toBe('validation_error');
   });
+
+  it('limit=0 / 负数 → 400 validation_error（正整数语义）', async () => {
+    for (const q of ['0', '-1']) {
+      const res = await request(app).get(`/api/progress?limit=${q}`);
+      expect(res.status).toBe(400);
+      expect(res.body.code).toBe('validation_error');
+    }
+  });
 });
