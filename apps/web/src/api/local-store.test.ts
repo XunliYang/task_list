@@ -618,4 +618,19 @@ describe('LocalStore：GET /api/progress 跨任务聚合读', () => {
     expect(caught?.status).toBe(400);
     expect(caught?.code).toBe('validation_error');
   });
+
+  it('limit=0 / 负数 → 400 validation_error（正整数语义）', () => {
+    const store = newStore();
+    for (const q of ['0', '-1']) {
+      let caught: ApiError | null = null;
+      try {
+        store.request('GET', `/progress?limit=${q}`);
+      } catch (err) {
+        caught = err as ApiError;
+      }
+      expect(caught).toBeInstanceOf(ApiError);
+      expect(caught?.status).toBe(400);
+      expect(caught?.code).toBe('validation_error');
+    }
+  });
 });

@@ -196,7 +196,7 @@ function parseLimitParam(query: URLSearchParams): number {
   if (raw === null) {
     return DEFAULT_PROGRESS_LIMIT;
   }
-  if (!/^\d+$/.test(raw)) {
+  if (!/^[1-9]\d*$/.test(raw)) {
     httpError(400, 'validation_error', `limit 必须为正整数，收到：${raw}`);
   }
   return Number(raw);

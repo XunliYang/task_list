@@ -13,7 +13,7 @@ export function parseLimit(raw: unknown): number {
     return DEFAULT_PROGRESS_LIMIT;
   }
   const text = Array.isArray(raw) ? String(raw[0]) : String(raw);
-  if (!/^\d+$/.test(text)) {
+  if (!/^[1-9]\d*$/.test(text)) {
     throw new HttpError(400, 'validation_error', `limit 必须为正整数，收到：${text}`);
   }
   return Number(text);

@@ -68,8 +68,8 @@
   /* 主区自身成为滚动容器：侧栏（sibling）不随其滚动条移动。 */
   overflow-y: auto;
   /* 高度由 grid 行 minmax(0,1fr) 约束；再以视口兜底，避免依赖父链 height:100% 解析。
-   * 偏移 ≈ 导航 64 + 主容器上下 padding 2*24 + 页内上下 padding 2*16 + 页头/间距 ~80。 */
-  max-height: calc(100vh - 200px);
+   * 偏移 = 导航 var(--app-nav-height) + 主容器/页内 padding + 页头近似（合计 136px）。 */
+  max-height: calc(100vh - var(--app-nav-height) - 136px);
 }
 
 .calendar-page__grid {
@@ -84,9 +84,9 @@
   width: 320px;
   max-width: 100%;
   min-width: 0;
-  /* sticky 相对文档滚动：顶部让出导航（64px）+ 间距。 */
+  /* sticky 相对文档滚动：顶部让出导航（var(--app-nav-height)）+ 间距。 */
   position: sticky;
-  top: calc(64px + var(--space-4));
+  top: calc(var(--app-nav-height) + var(--space-4));
   align-self: start;
   display: flex;
   flex-direction: column;
