@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Task } from '@task-list/shared';
 import { useStatuses } from '../../api/statuses';
@@ -38,29 +38,33 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
   const [touched, setTouched] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      setTitle(task.title);
-      setCompany(task.company ?? '');
-      setTags(task.tags);
-      setTagDraft('');
-      setStatusId(task.statusId);
-      setNotes(task.notes);
-      setJobApplication(jobApplicationDraftFrom(task.jobApplication));
-      setTouched(false);
-      setSubmitError(null);
-    }
-  }, [open, task]);
+  // 渲染阶段同步表单 state：打开弹窗（open 由 false→true）或切换任务（task.id 变化）时，
+  // 立即用当前 task 重置各字段，而不是放在 useEffect 中滞后更新——
+  // 否则 JobApplicationFields 首次挂载时会读到上一次任务的陈旧 value，
+  // 导致「已有内容默认展开 / 无内容默认收起」的折叠初态计算错误。
+  const [resetKey, setResetKey] = useState({ open, taskId: task.id });
+  if (resetKey.open !== open || resetKey.taskId !== task.id) {
+    setResetKey({ open, taskId: task.id });
+    setTitle(task.title);
+    setCompany(task.company ?? '');
+    setTags(task.tags);
+    setTagDraft('');
+    setStatusId(task.statusId);
+    setNotes(task.notes);
+    setJobApplication(jobApplicationDraftFrom(task.jobApplication));
+    setTouched(false);
+    setSubmitError(null);
+  }
 
   const titleInvalid = title.trim().length === 0;
   // 三个链接字段：非空即须为合法 URL（与后端 zod `.url()` 一致）。
   const urlErrors = useMemo(() => {
     const map: Record<string, string> = {};
-    for (const error of jobApplicationUrlErrors(jobApplication)) {
+    for (const error of jobApplicationUrlErrors(jobApplication, task.jobApplication)) {
       map[error.field] = error.message;
     }
     return map;
-  }, [jobApplication]);
+  }, [jobApplication, task.jobApplication]);
   const urlsInvalid = Object.keys(urlErrors).length > 0;
   const canSubmit = !titleInvalid && !urlsInvalid && !updateTask.isPending;
 
@@ -171,6 +175,7 @@ export function TaskEditDialog({ task, open, onClose }: TaskEditDialogProps) {
         </label>
 
         <JobApplicationFields
+          key={task.id}
           value={jobApplication}
           onChange={setJobApplication}
           errors={urlErrors}
